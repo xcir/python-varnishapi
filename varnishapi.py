@@ -6,6 +6,15 @@ import ctypes
 VSL_handler_f = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_char_p, ctypes.c_ulonglong)
 
 class VSLUtil:
+
+	def tag2VarName(self, spec, tag):
+		if spec < 0 or spec > 2:
+			return ''
+		if not self.tags[spec].has_key(tag):
+			return ''
+		return self.tags[spec][tag]
+		
+		
 	tags     = {
 		0:{
 			"Debug"				:"",

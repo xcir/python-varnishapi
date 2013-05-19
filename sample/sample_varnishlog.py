@@ -35,22 +35,24 @@ class SampleVarnishLog:
 			'tag'     : 'ObjHeader',
 			'msg'     : 'Cache-Control: max-age=0, no-cache',
 		'''
+		
+		tagprx = nml['tag'][0:2];
 		if spec == 1:
-			if nml['tag'][0:2] == "Rx":
+			if tagprx == "Rx":
 				nml['rxtx'] = 'Client -> Varnish'
-			elif nml['tag'][0:2] == "Tx":
+			elif tagprx == "Tx":
 				nml['rxtx'] = 'Client <- Varnish'
 			else:
 				nml['rxtx'] = "Client"
 		elif spec == 2:
-			if nml['tag'][0:2] == "Rx":
+			if tagprx == "Rx":
 				nml['rxtx'] = 'Varnish <- Backend'
-			elif nml['tag'][0:2] == "Tx":
+			elif tagprx == "Tx":
 				nml['rxtx'] = 'Varnish -> Backend'
 			else:
 				nml['rxtx'] = "Backend"
 
-		nml['var'] = self.vslutil.tags[spec][nml['tag']]
+		nml['var'] = self.vslutil.tag2VarName(spec, nml['tag'])
 		print "%5d %-20s %-12s %-16s %s" % (nml['fd'], nml['rxtx'], nml['tag'], nml['var'], nml['msg'])
 
 main()
