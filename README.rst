@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2013-05-15
-:Version: 0.0-1
+:Date: 2014-02-02
+:Version: 0.2
 :Manual section: 3
 
 
@@ -108,11 +108,12 @@ VarnishAPI.__init__
 Prototype
         ::
 
-                varnishapi(sopath = 'libvarnishapi.so.1')
+                varnishapi(opt = '', sopath = 'libvarnishapi.so.1')
 
 Parameter
         ::
 
+                LIST   VSL arg [OPTION]
                 STRING libvarnishapi path [OPTION]
 
 Return value
@@ -129,6 +130,9 @@ Example
         ::
 
                 vap = varnishapi.VarnishAPI()
+                
+                #set VSL arg
+                vap = varnishapi.VarnishAPI(['-c', '-i', 'RxUrl'])
 
 
 VarnishAPI.VSL_Dispatch
@@ -310,7 +314,7 @@ Example
                 
                 
                    def main(self):
-                       self.vap = varnishapi.VarnishAPI('/usr/lib64/libvarnishapi.so.1')
+                       self.vap = varnishapi.VarnishAPI('', '/usr/lib64/libvarnishapi.so.1')
                        while 1:
                            self.vap.VSL_NonBlockingDispatch(self.vapCallBack)
                            time.sleep(0.1)
@@ -318,7 +322,12 @@ Example
                 cl=sample()
                 cl.main()
 
+HISTORY
+===========
 
+Version 0.2: Support VSL_Arg
+
+Version 0.1: First version
 
 
 

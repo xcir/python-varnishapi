@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import ctypes
+import ctypes,getopt
 
 
 VSL_handler_f = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_char_p, ctypes.c_ulonglong)
@@ -184,14 +184,26 @@ class VSLUtil:
 
 class VarnishAPI:
 
-	def __init__(self,sopath = 'libvarnishapi.so.1'):
+	def __init__(self,opt = '',sopath = 'libvarnishapi.so.1'):
 		self.lib      = ctypes.cdll[sopath]
 		VSLTAGS       = ctypes.c_char_p * 256
 		self.VSL_tags = VSLTAGS.in_dll(self.lib, "VSL_tags")
 		self.vd       = self.lib.VSM_New()
+
 		self.lib.VSL_Setup(self.vd)
+		if opt:
+			opts, args = getopt.getopt(opt,"bCcdI:i:k:n:r:s:X:x:m:")
+			for opt in opts:
+				op = opt[0].lstrip('-')
+				if(len(opt) > 1):
+					self.VSL_Arg(op, opt[1])
+				else:
+					self.VSL_Arg(op)
+
 		self.lib.VSL_Open(self.vd, 1)
 
+	def VSL_Arg(self, arg, opt = '\0'):
+		return self.lib.VSL_Arg(self.vd, ord(arg), opt)
 
 	def VSL_Dispatch(self, func, priv = False):
 		cb_func = VSL_handler_f(func)
@@ -233,3 +245,4 @@ class VarnishAPI:
 				'tag'     : self.VSL_tags[tag],
 				'msg'     : ptr[0:length],
 			}
+
