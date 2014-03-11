@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2014-02-02
-:Version: 0.2
+:Date: 2014-03-11
+:Version: 0.3
 :Manual section: 3
 
 
@@ -211,6 +211,51 @@ Example
                     
                 main()
 
+VarnishAPI.VSM_ReOpen
+-------------------
+
+Prototype
+        ::
+
+                VSM_ReOpen(diag = 0)
+
+Parameter
+        ::
+
+                int diag
+
+Return value
+        ::
+
+                int
+
+Description
+        ::
+
+                Check if shared memory segment needs to be reopened/remapped.
+                VSM reopen/remap ,as required.
+Example
+        ::
+
+                class sample
+                    def vapCallBack(self, priv, tag, fd, length, spec, ptr, bm):
+                        self.last = time.time()
+                        print 'hello'
+
+                    def execute(self):
+                        self.vap  = varnishapi.VarnishAPI()
+                        self.last = int(time.time())
+                        while 1:
+                            self.vap.VSL_NonBlockingDispatch(self.vapCallBack)
+                            time.sleep(0.1)
+                            #Check vsm
+                            if int(time.time()) - self.last > 5:
+                                self.vap.VSM_ReOpen()
+                                self.last  = int(time.time())
+
+                smp = sample()
+                smp.execute()
+
 
 VarnishAPI.VSL_Name2Tag
 -------------------
@@ -324,6 +369,8 @@ Example
 
 HISTORY
 ===========
+
+Version 0.3: Support VSM_ReOpen
 
 Version 0.2: Support VSL_Arg
 

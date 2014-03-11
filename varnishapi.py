@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import ctypes,getopt
+import ctypes,sys,getopt
 
 
 VSL_handler_f = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_char_p, ctypes.c_ulonglong)
@@ -189,6 +189,8 @@ class VarnishAPI:
 		VSLTAGS       = ctypes.c_char_p * 256
 		self.VSL_tags = VSLTAGS.in_dll(self.lib, "VSL_tags")
 		self.vd       = self.lib.VSM_New()
+		self.nb       = 0
+
 
 		self.lib.VSL_Setup(self.vd)
 		if opt:
@@ -207,6 +209,9 @@ class VarnishAPI:
 
 	def VSL_Dispatch(self, func, priv = False):
 		cb_func = VSL_handler_f(func)
+		if self.nb == 1:
+			self.lib.VSL_NonBlocking(self.vd, 0)
+			self.nb = 0
 		if priv:
 			self.lib.VSL_Dispatch(self.vd, cb_func, priv)
 		else:
@@ -215,12 +220,18 @@ class VarnishAPI:
 
 	def VSL_NonBlockingDispatch(self, func, priv = False):
 		cb_func = VSL_handler_f(func)
+		if self.nb == 0:
+			self.lib.VSL_NonBlocking(self.vd, 1)
+			self.nb = 1
+
 		self.lib.VSL_NonBlocking(self.vd, 1)
 		if priv:
 			self.lib.VSL_Dispatch(self.vd, cb_func, priv)
 		else:
 			self.lib.VSL_Dispatch(self.vd, cb_func, self.vd)
 		
+	def VSM_ReOpen(self, diag = 0):
+		return self.lib.VSM_ReOpen(self.vd, diag)
 
 	def VSL_Name2Tag(self, name):
 		return self.lib.VSL_Name2Tag(name, ctypes.c_int(-1))
