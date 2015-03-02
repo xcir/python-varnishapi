@@ -305,13 +305,15 @@ class VarnishAPI:
         return self.lib.VSLQ_Name2Grouping(arg, -1)
     
     def __callBack(self,vsl, pt, fo):
-        i = 0
+        i = -1
         while 1:
+            i=i+1
             t = pt[i]
             if not bool(t):
                 break
             tra=t[0]
             c  =tra.c[0]
+            
             if vsl[0].c_opt or vsl[0].b_opt:
                 if   tra.type == self.defi.VSL_t_req and not vsl[0].c_opt:
                     continue
@@ -344,5 +346,4 @@ class VarnishAPI:
                 if self.__cb:
                     self.__cb(self,vxid,tag,type,data,isbin,length)
                 #print "vxid:%d tag:%d type:%s data:%s (len=%d)" % (vxid,tag,type,data,length)
-            i = i+1
         return(0)
