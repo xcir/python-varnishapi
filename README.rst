@@ -39,4 +39,13 @@ Version 0.2-varnish30: Support VSL_Arg
 Version 0.1-varnish30: First version
 
 
+COPYRIGHT
+===========
 
+python-varnishapi
+
+* Copyright (c) 2015 Shohei Tanaka(@xcir)
+
+Varnish Cache
+
+* Copyright (c) 2006-2015 Varnish Software AS
