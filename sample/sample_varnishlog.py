@@ -12,9 +12,9 @@ class SampleVarnishLog:
 				time.sleep(0.5)
 		
 		
-	def vapCallBack(self,vap,vxid,tag,type,data,isbin,length):
+	def vapCallBack(self,vap,level,vxid,vxid_parent,tag,type,data,isbin,length):
 	    t_tag = vap.VSL_tags[tag]
-	    print "vxid:%d tag:%s type:%s data:%s (isbin=%d,len=%d)" % (vxid,t_tag,type,data,isbin,length)
+	    print "level:%d vxid:%d vxid_parent:%d tag:%s type:%s data:%s (isbin=%d,len=%d)" % (level,vxid,vxid_parent,t_tag,type,data,isbin,length)
 
 def main(smp):
 	try:

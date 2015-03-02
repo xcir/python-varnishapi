@@ -94,7 +94,32 @@ class VarnishAPIDefine40:
         self.VSL_t_bereq   = 3
         self.VSL_t_raw     = 4
         self.VSL_t__MAX    = 5
-
+        
+        '''
+        //////////////////////////////
+        enum VSL_reason_e {
+            VSL_r_unknown,
+            VSL_r_http_1,
+            VSL_r_rxreq,
+            VSL_r_esi,
+            VSL_r_restart,
+            VSL_r_pass,
+            VSL_r_fetch,
+            VSL_r_bgfetch,
+            VSL_r_pipe,
+            VSL_r__MAX,
+        };
+        '''
+        self.VSL_r_unknown = 0
+        self.VSL_r_http_1  = 1
+        self.VSL_r_rxreq   = 2
+        self.VSL_r_esi     = 3
+        self.VSL_r_restart = 4
+        self.VSL_r_pass    = 5
+        self.VSL_r_fetch   = 6
+        self.VSL_r_bgfetch = 7
+        self.VSL_r_pipe    = 8
+        self.VSL_r__MAX    = 9
 
 class LIBVARNISHAPI13:
     def __init__(self,lib):
@@ -305,13 +330,19 @@ class VarnishAPI:
         return self.lib.VSLQ_Name2Grouping(arg, -1)
     
     def __callBack(self,vsl, pt, fo):
-        i = 0
+        i = -1
         while 1:
+            i=i+1
             t = pt[i]
             if not bool(t):
                 break
             tra=t[0]
             c  =tra.c[0]
+            level       = tra.level
+            vxid        = tra.vxid
+            vxid_parent = tra.vxid_parent
+            reason      = tra.reason
+            
             if vsl[0].c_opt or vsl[0].b_opt:
                 if   tra.type == self.defi.VSL_t_req and not vsl[0].c_opt:
                     continue
@@ -331,7 +362,7 @@ class VarnishAPI:
                 
                 #decode vxid type ...
                 length =c.rec.ptr[0] & 0xffff
-                vxid   =c.rec.ptr[1] & (~(3<<30))
+                #vxid   =c.rec.ptr[1] & (~(3<<30))
                 data   =string_at(c.rec.ptr,length + 8)[8:]
                 tag    =c.rec.ptr[0] >> 24
                 if c.rec.ptr[1] &(1<< 30):
@@ -342,7 +373,6 @@ class VarnishAPI:
                     type = '-'
                 isbin = self.VSL_tagflags[tag] & self.defi.SLT_F_BINARY
                 if self.__cb:
-                    self.__cb(self,vxid,tag,type,data,isbin,length)
+                    self.__cb(self,level,vxid,vxid_parent,tag,type,data,isbin,length)
                 #print "vxid:%d tag:%d type:%s data:%s (len=%d)" % (vxid,tag,type,data,length)
-            i = i+1
         return(0)
