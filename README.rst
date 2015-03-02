@@ -10,6 +10,7 @@ Connect to libvarnish api by ctypes
 :Author: Shohei Tanaka(@xcir)
 :Date: 2014-03-11
 :Version: 0.3
+:Support Varnish Version: 3.0.x
 :Manual section: 3
 
 
