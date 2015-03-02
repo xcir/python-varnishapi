@@ -13,6 +13,10 @@ Connect to libvarnish api by ctypes
 :Support Varnish Version: 4.0.x
 :Manual section: 3
 
+For Varnish3.0.x
+=================
+See this link.
+https://github.com/xcir/python-varnishapi/tree/varnish30
 
 DESCRIPTION
 ============
