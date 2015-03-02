@@ -1,58 +1,33 @@
 # coding: utf-8
-
-import varnishapi,time
-
-def main():
-	smp = SampleVarnishLog()
-	smp.execute()
+import varnishapi,time,os,sys,syslog,traceback
 
 class SampleVarnishLog:
-	def __init__(self):
+	def execute(self,vap):
 		#connect varnishapi
-		self.vap     = varnishapi.VarnishAPI()
-		#utils
-		self.vslutil = varnishapi.VSLUtil()
-
-	def execute(self):
+		self.vap     = vap
+		self.vap.Setup()
 		while 1:
-			#dispatch
-			self.vap.VSL_NonBlockingDispatch(self.vapCallBack)
-			time.sleep(0.1)
-
-	def vapCallBack(self, priv, tag, fd, length, spec, ptr, bm):
-		if spec == 0:
-			return
-
-		nml = self.vap.normalizeDic(priv, tag, fd, length, spec, ptr, bm)
-		'''
-			[rawdata]
-			12 ObjHeader    c Cache-Control: max-age=0, no-cache
-			
-			[dict]
-			'fd'      : 12,
-			'type'    : 1,
-			'typeName': 'c',
-			'tag'     : 'ObjHeader',
-			'msg'     : 'Cache-Control: max-age=0, no-cache',
-		'''
+			ret = self.vap.DispatchMulti(self.vapCallBack)
+			if 0 == ret:
+				time.sleep(0.5)
 		
-		tagprx = nml['tag'][0:2];
-		if spec == 1:
-			if tagprx == "Rx":
-				nml['rxtx'] = 'Client -> Varnish'
-			elif tagprx == "Tx":
-				nml['rxtx'] = 'Client <- Varnish'
-			else:
-				nml['rxtx'] = "Client"
-		elif spec == 2:
-			if tagprx == "Rx":
-				nml['rxtx'] = 'Varnish <- Backend'
-			elif tagprx == "Tx":
-				nml['rxtx'] = 'Varnish -> Backend'
-			else:
-				nml['rxtx'] = "Backend"
+		
+	def vapCallBack(self,vap,vxid,tag,type,data,isbin,length):
+	    t_tag = vap.VSL_tags[tag]
+	    print "vxid:%d tag:%s type:%s data:%s (isbin=%d,len=%d)" % (vxid,t_tag,type,data,isbin,length)
 
-		nml['var'] = self.vslutil.tag2VarName(spec, nml['tag'])
-		print "%5d %-20s %-12s %-16s %s" % (nml['fd'], nml['rxtx'], nml['tag'], nml['var'], nml['msg'])
+def main(smp):
+	try:
+		vap = varnishapi.VarnishAPI(['-q','requrl ~ "/hello"','-g','request'])
+		smp.execute(vap)
+	except KeyboardInterrupt:
+		vap.Fini()
+	except Exception as e:
+		syslog.openlog(sys.argv[0], syslog.LOG_PID|syslog.LOG_PERROR, syslog.LOG_LOCAL0)
+		syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
 
-main()
+if __name__ == '__main__':
+	smp = SampleVarnishLog()
+	main(smp)
+
+	    
