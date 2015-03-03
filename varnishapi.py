@@ -166,13 +166,13 @@ class VarnishAPI:
         
         self.error   = ''
 
-        self.vsl     = self.lib.VSL_New()
         
 
 class VarnishLog(VarnishAPI):
     def __init__(self, opt = '', sopath = 'libvarnishapi.so.1'):
         VarnishAPI.__init__(self,sopath)
 
+        self.vsl     = self.lib.VSL_New()
         self.vsm     = None
         self.vslq    = None
         self.__d_opt = 0
