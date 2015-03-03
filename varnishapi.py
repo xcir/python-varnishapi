@@ -23,10 +23,7 @@ class VSL_transaction(Structure):
         ("type", c_int),            #enum VSL_transaction_e type;
         ("reason", c_int),          #enum VSL_reason_e      reason;
         ("c", POINTER(VSL_cursor))  #struct VSL_cursor      *c;
-
          ]
-
-
 
 class VTAILQ_HEAD(Structure):
   _fields_ = [("vtqh_first" , c_void_p),       #struct type *vtqh_first;    /* first element */        \
@@ -150,7 +147,6 @@ class LIBVARNISHAPI13:
         #self.VSLQ_Dispatch.argtypes = (c_void_p, CFUNCTYPE ,c_void_p)
         
         
-
 class VarnishAPI:
     def __init__(self, opt = '', sopath = 'libvarnishapi.so.1'):
         self.lib     = cdll[sopath]
@@ -168,11 +164,17 @@ class VarnishAPI:
         VSLQGROUPING       = c_char_p * 4
         self.VSLQ_grouping = VSLQGROUPING.in_dll(self.lib, "VSLQ_grouping")
         
+        self.error   = ''
+
         self.vsl     = self.lib.VSL_New()
         
+
+class VarnishLog(VarnishAPI):
+    def __init__(self, opt = '', sopath = 'libvarnishapi.so.1'):
+        VarnishAPI.__init__(self,sopath)
+
         self.vsm     = None
         self.vslq    = None
-        self.error   = ''
         self.__d_opt = 0
         self.__g_arg = 0
         self.__q_arg = None
@@ -376,3 +378,4 @@ class VarnishAPI:
                     self.__cb(self,level,vxid,vxid_parent,tag,type,data,isbin,length)
                 #print "vxid:%d tag:%d type:%s data:%s (len=%d)" % (vxid,tag,type,data,length)
         return(0)
+        
