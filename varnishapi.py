@@ -240,18 +240,14 @@ class VarnishStat(VarnishAPI):
         i = 0
         
         type  = string_at(addressof(sec[0].fantom[0].type))
-        ident =string_at(addressof(sec[0].fantom[0].ident))
+        ident = string_at(addressof(sec[0].fantom[0].ident))
         if type != '':
             key=key + type + '.'
-            #i += printf("%s.", sec->fantom->type);
         if ident != '':
             key=key + ident + '.'
-            #i += printf("%s.", sec->fantom->ident);
-        #i += printf("%s", pt->desc->name);
         key=key + pt[0].desc[0].name
         
         self.__buf[key]={'val':val,'desc':pt[0].desc[0].sdesc}
-        #printf("%12ju %12s %s\n",(uintmax_t)val, ".  ", pt->desc->sdesc);
         
         return(0)
         
