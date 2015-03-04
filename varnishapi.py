@@ -2,8 +2,62 @@
 
 from ctypes import *
 import sys,getopt
+###########################################
+
+class VSC_level_desc(Structure):
+  _fields_ = [("verbosity" ,c_uint),  #unsigned verbosity;
+        ("label", c_char_p),          #const char *label;		/* label */
+        ("sdesc", c_char_p),          #const char *sdesc;		/* short description */
+        ("ldesc", c_char_p)           #const char *ldesc;		/* long description */
+         ]
+
+class VSC_type_desc(Structure):
+  _fields_ = [("label", c_char_p),    #const char *label;		/* label */
+        ("sdesc", c_char_p),          #const char *sdesc;		/* short description */
+        ("ldesc", c_char_p)           #const char *ldesc;		/* long description */
+         ]
+
+class VSM_fantom(Structure):
+  _fields_ = [("chunk", c_void_p),       #struct VSM_chunk	*chunk;
+        ("b", c_void_p),                 #void			*b;		/* first byte of payload */
+        ("e", c_void_p),                 #void			*e;		/* first byte past payload */
+        #("priv", c_uint),                #uintptr_t		priv;		/* VSM private */
+        ("priv", c_void_p),                #uintptr_t		priv;		/* VSM private */
+        ("_class", c_byte * 8),          #char			class[VSM_MARKER_LEN];
+        ("type", c_byte * 8),            #char			type[VSM_MARKER_LEN];
+        ("ident", c_byte*128),           #char			ident[VSM_IDENT_LEN];
+         ]
 
 
+class VSC_section(Structure):
+  _fields_ = [("type", c_char_p),        #const char *type;
+        ("ident", c_char_p),             #const char *ident;
+        ("desc", POINTER(VSC_type_desc)),#const struct VSC_type_desc *desc;
+        ("fantom", POINTER(VSM_fantom))  #struct VSM_fantom *fantom;
+         ]
+
+class VSC_desc(Structure):
+  _fields_ = [("name", c_char_p),          #const char *name;		/* field name			*/
+        ("fmt", c_char_p),                 #const char *fmt;		/* field format ("uint64_t")	*/
+        ("flag", c_int),                   #int flag;			/* 'c' = counter, 'g' = gauge	*/
+        ("sdesc", c_char_p),               #const char *sdesc;		/* short description		*/
+        ("ldesc", c_char_p),               #const char *ldesc;		/* long description		*/
+        ("level", POINTER(VSC_level_desc)) #const struct VSC_level_desc *level;
+         ]
+
+class VSC_point(Structure):
+  _fields_ = [("desc", POINTER(VSC_desc)), #const struct VSC_desc *desc;	/* point description		*/
+        #("ptr", c_void_p),                 #const volatile void *ptr;	/* field value			*/
+        ("ptr", POINTER(c_ulonglong)),                 #const volatile void *ptr;	/* field value			*/
+        ("section", POINTER(VSC_section))  #const struct VSC_section *section;
+         ]
+
+#typedef int VSC_iter_f(void *priv, const struct VSC_point *const pt);
+VSC_iter_f = CFUNCTYPE(c_int,
+  c_void_p,POINTER(VSC_point)
+  )
+
+###########################################
 class VSLC_ptr(Structure):
   #_fields_ = [("ptr" , POINTER(c_uint32)), #const uint32_t        *ptr; /* Record pointer */
   _fields_ = [("ptr" , POINTER(c_uint32)),  #const uint32_t        *ptr; /* Record pointer */
@@ -153,6 +207,7 @@ class VarnishAPI:
         self.lva     = LIBVARNISHAPI13(self.lib)
         self.defi    = VarnishAPIDefine40()
         self.__cb    = None
+        self.vsm     = None
         
         VSLTAGS           = c_char_p * 256
         self.VSL_tags     = VSLTAGS.in_dll(self.lib, "VSL_tags")
@@ -167,13 +222,50 @@ class VarnishAPI:
         self.error   = ''
 
         
+class VarnishStat(VarnishAPI):
+    def __init__(self, sopath = 'libvarnishapi.so.1'):
+        VarnishAPI.__init__(self,sopath)
+        self.vsm = self.lib.VSM_New()
+        self.lib.VSM_Open(self.vsm)
+        
+
+    def __getstat(self, priv, pt):
+        
+        if not bool(pt):
+            return(0)
+        val = pt[0].ptr[0]
+        
+        sec = pt[0].section
+        key = ''
+        i = 0
+        
+        type  = string_at(addressof(sec[0].fantom[0].type))
+        ident =string_at(addressof(sec[0].fantom[0].ident))
+        if type != '':
+            key=key + type + '.'
+            #i += printf("%s.", sec->fantom->type);
+        if ident != '':
+            key=key + ident + '.'
+            #i += printf("%s.", sec->fantom->ident);
+        #i += printf("%s", pt->desc->name);
+        key=key + pt[0].desc[0].name
+        
+        self.__buf[key]={'val':val,'desc':pt[0].desc[0].sdesc}
+        #printf("%12ju %12s %s\n",(uintmax_t)val, ".  ", pt->desc->sdesc);
+        
+        return(0)
+        
+    def getstat(self):
+        self.__buf = {}
+        self.lib.VSC_Iter(self.vsm, None, VSC_iter_f(self.__getstat), None);
+        return self.__buf
+        
 
 class VarnishLog(VarnishAPI):
     def __init__(self, opt = '', sopath = 'libvarnishapi.so.1'):
         VarnishAPI.__init__(self,sopath)
 
         self.vsl     = self.lib.VSL_New()
-        self.vsm     = None
         self.vslq    = None
         self.__d_opt = 0
         self.__g_arg = 0
