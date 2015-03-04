@@ -23,9 +23,9 @@ class VSM_fantom(Structure):
         ("e", c_void_p),                 #void			*e;		/* first byte past payload */
         #("priv", c_uint),                #uintptr_t		priv;		/* VSM private */
         ("priv", c_void_p),                #uintptr_t		priv;		/* VSM private */
-        ("_class", c_byte * 8),          #char			class[VSM_MARKER_LEN];
-        ("type", c_byte * 8),            #char			type[VSM_MARKER_LEN];
-        ("ident", c_byte*128),           #char			ident[VSM_IDENT_LEN];
+        ("_class", c_char * 8),          #char			class[VSM_MARKER_LEN];
+        ("type", c_char * 8),            #char			type[VSM_MARKER_LEN];
+        ("ident", c_char*128),           #char			ident[VSM_IDENT_LEN];
          ]
 
 
@@ -239,8 +239,8 @@ class VarnishStat(VarnishAPI):
         key = ''
         i = 0
         
-        type  = string_at(addressof(sec[0].fantom[0].type))
-        ident = string_at(addressof(sec[0].fantom[0].ident))
+        type  = sec[0].fantom[0].type
+        ident = sec[0].fantom[0].ident
         if type != '':
             key=key + type + '.'
         if ident != '':
