@@ -28,7 +28,7 @@ class VSM_fantom(Structure):
               ("priv", c_void_p),              #uintptr_t		priv;		/* VSM private */
               ("_class", c_char * 8),          #char			class[VSM_MARKER_LEN];
               ("type", c_char * 8),            #char			type[VSM_MARKER_LEN];
-              ("ident", c_char*128),           #char			ident[VSM_IDENT_LEN];
+              ("ident", c_char * 128),         #char			ident[VSM_IDENT_LEN];
              ]
 
 
