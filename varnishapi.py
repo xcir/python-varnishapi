@@ -218,17 +218,17 @@ class LIBVARNISHAPI13:
         
 class VSLUtil:
     def tag2VarName(self, tag, data):
-        if not self.tags.has_key(tag):
+        if not self.__tags.has_key(tag):
             return ''
         
-        r =  self.tags[tag]
+        r =  self.__tags[tag]
         if   r == '':
             return ''
         elif r[-1:] == '.':
           return r + data.split(':',1)[0]
         return (r)
     
-    tags = {
+    __tags = {
         'Debug'          : '',
         'Error'          : '',
         'CLI'            : '',
@@ -319,7 +319,7 @@ class VarnishAPI:
         self.lva     = LIBVARNISHAPI13(self.lib)
         self.defi    = VarnishAPIDefine40()
         self.__cb    = None
-        self.vsm     = None
+        self.vsm     = self.lib.VSM_New()
         
         VSLTAGS           = c_char_p * 256
         self.VSL_tags     = VSLTAGS.in_dll(self.lib, "VSL_tags")
@@ -404,15 +404,11 @@ class VarnishLog(VarnishAPI):
                     break
             elif op == "n":
                 #インスタンス指定
-                if not self.vsm:
-                    self.vsm = self.lib.VSM_New()
                 if self.lib.VSM_n_Arg(self.vsm, arg) <= 0:
                     error = "%s" % self.lib.VSM_Error(self.vsm)
                     break
             elif op == "N":
                 #VSMファイル指定
-                if not self.vsm:
-                    self.vsm = self.lib.VSM_New()
                 if self.lib.VSM_N_Arg(self.vsm, arg) <= 0:
                     error = "%s" % self.lib.VSM_Error(self.vsm)
                     break
@@ -444,8 +440,6 @@ class VarnishLog(VarnishAPI):
         if self.__r_arg:
             c = self.lva.VSL_CursorFile(self.vsl, self.__r_arg, 0);
         else:
-            if not self.vsm:
-                self.vsm = self.lib.VSM_New()
             if self.lib.VSM_Open(self.vsm):
                 self.error = "Can't open VSM file (%s)" % self.VSM_Error(self.vsm)
                 return(0)
