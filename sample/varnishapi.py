@@ -2,53 +2,118 @@
 
 from ctypes import *
 import sys,getopt
+###########################################
+
+class VSC_level_desc(Structure):
+  _fields_ = [
+              ("verbosity" ,c_uint),        #unsigned verbosity;
+              ("label", c_char_p),          #const char *label;		/* label */
+              ("sdesc", c_char_p),          #const char *sdesc;		/* short description */
+              ("ldesc", c_char_p),          #const char *ldesc;		/* long description */
+             ]
+
+class VSC_type_desc(Structure):
+  _fields_ = [
+              ("label", c_char_p),          #const char *label;		/* label */
+              ("sdesc", c_char_p),          #const char *sdesc;		/* short description */
+              ("ldesc", c_char_p),          #const char *ldesc;		/* long description */
+             ]
+
+class VSM_fantom(Structure):
+  _fields_ = [
+              ("chunk", c_void_p),             #struct VSM_chunk	*chunk;
+              ("b", c_void_p),                 #void			*b;		/* first byte of payload */
+              ("e", c_void_p),                 #void			*e;		/* first byte past payload */
+              #("priv", c_uint),               #uintptr_t		priv;		/* VSM private */
+              ("priv", c_void_p),              #uintptr_t		priv;		/* VSM private */
+              ("_class", c_char * 8),          #char			class[VSM_MARKER_LEN];
+              ("type", c_char * 8),            #char			type[VSM_MARKER_LEN];
+              ("ident", c_char * 128),         #char			ident[VSM_IDENT_LEN];
+             ]
 
 
+class VSC_section(Structure):
+  _fields_ = [
+              ("type", c_char_p),               #const char *type;
+              ("ident", c_char_p),              #const char *ident;
+              ("desc", POINTER(VSC_type_desc)), #const struct VSC_type_desc *desc;
+              ("fantom", POINTER(VSM_fantom)),  #struct VSM_fantom *fantom;
+             ]
+
+class VSC_desc(Structure):
+  _fields_ = [
+              ("name", c_char_p),                 #const char *name;		/* field name			*/
+              ("fmt", c_char_p),                  #const char *fmt;		/* field format ("uint64_t")	*/
+              ("flag", c_int),                    #int flag;			/* 'c' = counter, 'g' = gauge	*/
+              ("sdesc", c_char_p),                #const char *sdesc;		/* short description		*/
+              ("ldesc", c_char_p),                #const char *ldesc;		/* long description		*/
+              ("level", POINTER(VSC_level_desc)), #const struct VSC_level_desc *level;
+             ]
+
+class VSC_point(Structure):
+  _fields_ = [
+              ("desc", POINTER(VSC_desc)),        #const struct VSC_desc *desc;	/* point description		*/
+              #("ptr", c_void_p),                 #const volatile void *ptr;	/* field value			*/
+              ("ptr", POINTER(c_ulonglong)),      #const volatile void *ptr;	/* field value			*/
+              ("section", POINTER(VSC_section)),  #const struct VSC_section *section;
+             ]
+
+#typedef int VSC_iter_f(void *priv, const struct VSC_point *const pt);
+VSC_iter_f = CFUNCTYPE(
+  c_int,
+  c_void_p,
+  POINTER(VSC_point)
+  )
+
+###########################################
 class VSLC_ptr(Structure):
-  #_fields_ = [("ptr" , POINTER(c_uint32)), #const uint32_t        *ptr; /* Record pointer */
-  _fields_ = [("ptr" , POINTER(c_uint32)),  #const uint32_t        *ptr; /* Record pointer */
-        ("priv", c_uint)                    #unsigned              priv;
-         ]
+  _fields_ = [
+              ("ptr" , POINTER(c_uint32)),         #const uint32_t        *ptr; /* Record pointer */
+              ("priv", c_uint),                    #unsigned              priv;
+             ]
 
 class VSL_cursor(Structure):
-  _fields_ = [("rec" , VSLC_ptr),        #struct VSLC_ptr rec;
-        ("priv_tbl", c_void_p),          #const void      *priv_tbl;
-        ("priv_data", c_void_p)          #void            *priv_data;
-         ]
+  _fields_ = [
+              ("rec" , VSLC_ptr),             #struct VSLC_ptr rec;
+              ("priv_tbl", c_void_p),         #const void      *priv_tbl;
+              ("priv_data", c_void_p),        #void            *priv_data;
+             ]
 
 class VSL_transaction(Structure):
-  _fields_ = [("level" , c_uint),   #unsigned               level;
+  _fields_ = [
+        ("level" , c_uint),         #unsigned               level;
         ("vxid", c_int32),          #int32_t                vxid;
         ("vxid_parent", c_int32),   #int32_t                vxid_parent;
         ("type", c_int),            #enum VSL_transaction_e type;
         ("reason", c_int),          #enum VSL_reason_e      reason;
-        ("c", POINTER(VSL_cursor))  #struct VSL_cursor      *c;
-
-         ]
-
-
+        ("c", POINTER(VSL_cursor)), #struct VSL_cursor      *c;
+       ]
 
 class VTAILQ_HEAD(Structure):
-  _fields_ = [("vtqh_first" , c_void_p),       #struct type *vtqh_first;    /* first element */        \
-        ("vtqh_last", POINTER(c_void_p))       #struct type **vtqh_last;    /* addr of last next element */    \
-         ]
+  _fields_ = [
+        ("vtqh_first" , c_void_p),         #struct type *vtqh_first;    /* first element */        \
+        ("vtqh_last", POINTER(c_void_p)),  #struct type **vtqh_last;    /* addr of last next element */    \
+       ]
 
 class vbitmap(Structure):
-  _fields_ = [("bits" , c_void_p),  #VBITMAP_TYPE    *bits;
-        ("nbits", c_uint)           #unsigned        nbits;
+  _fields_ = [
+        ("bits" , c_void_p),  #VBITMAP_TYPE    *bits;
+        ("nbits", c_uint),    #unsigned        nbits;
          ]
 
 class vsb(Structure):
-  _fields_ = [("magic" , c_uint), #unsigned   magic;
+  _fields_ = [
+        ("magic" , c_uint),       #unsigned   magic;
         ("s_buf", c_char_p),      #char       *s_buf;    /* storage buffer */
         ("s_error", c_int),       #int        s_error;   /* current error code */
         ("s_size", c_ssize_t),    #ssize_t    s_size;    /* size of storage buffer */
         ("s_len", c_ssize_t),     #ssize_t    s_len;     /* current length of string */
-        ("s_flags", c_int)        #int        s_flags;   /* flags */
-         ]
+        ("s_flags", c_int),       #int        s_flags;   /* flags */
+       ]
 
 class VSL_data(Structure):
-  _fields_ = [("magic", c_uint),           #unsigned           magic;
+  _fields_ = [
+        ("magic", c_uint),                 #unsigned           magic;
         ("diag", POINTER(vsb)),            #struct vsb         *diag;
         ("flags", c_uint),                 #unsigned           flags;
         ("vbm_select", POINTER(vbitmap)),  #struct vbitmap     *vbm_select;
@@ -60,13 +125,15 @@ class VSL_data(Structure):
         ("C_opt", c_int),                  #int                C_opt;
         ("L_opt", c_int),                  #int                L_opt;
         ("T_opt", c_double),               #double             T_opt;
-        ("v_opt", c_int)                   #int                v_opt;
-         ]
+        ("v_opt", c_int),                  #int                v_opt;
+       ]
 
 #typedef int VSLQ_dispatch_f(struct VSL_data *vsl, struct VSL_transaction * const trans[], void *priv);
-
-VSLQ_dispatch_f = CFUNCTYPE(c_int,
-  POINTER(VSL_data),POINTER(POINTER(VSL_transaction)),c_void_p
+VSLQ_dispatch_f = CFUNCTYPE(
+  c_int,
+  POINTER(VSL_data),
+  POINTER(POINTER(VSL_transaction)),
+  c_void_p
   )
 
 
@@ -150,13 +217,13 @@ class LIBVARNISHAPI13:
         #self.VSLQ_Dispatch.argtypes = (c_void_p, CFUNCTYPE ,c_void_p)
         
         
-
 class VarnishAPI:
     def __init__(self, opt = '', sopath = 'libvarnishapi.so.1'):
         self.lib     = cdll[sopath]
         self.lva     = LIBVARNISHAPI13(self.lib)
         self.defi    = VarnishAPIDefine40()
         self.__cb    = None
+        self.vsm     = None
         
         VSLTAGS           = c_char_p * 256
         self.VSL_tags     = VSLTAGS.in_dll(self.lib, "VSL_tags")
@@ -168,11 +235,49 @@ class VarnishAPI:
         VSLQGROUPING       = c_char_p * 4
         self.VSLQ_grouping = VSLQGROUPING.in_dll(self.lib, "VSLQ_grouping")
         
-        self.vsl     = self.lib.VSL_New()
-        
-        self.vsm     = None
-        self.vslq    = None
         self.error   = ''
+
+        
+class VarnishStat(VarnishAPI):
+    def __init__(self, sopath = 'libvarnishapi.so.1'):
+        VarnishAPI.__init__(self,sopath)
+        self.vsm = self.lib.VSM_New()
+        self.lib.VSM_Open(self.vsm)
+        
+
+    def __getstat(self, priv, pt):
+        
+        if not bool(pt):
+            return(0)
+        val = pt[0].ptr[0]
+        
+        sec = pt[0].section
+        key = ''
+        
+        type  = sec[0].fantom[0].type
+        ident = sec[0].fantom[0].ident
+        if type != '':
+            key=key + type + '.'
+        if ident != '':
+            key=key + ident + '.'
+        key=key + pt[0].desc[0].name
+        
+        self.__buf[key]={'val':val,'desc':pt[0].desc[0].sdesc}
+        
+        return(0)
+        
+    def getstat(self):
+        self.__buf = {}
+        self.lib.VSC_Iter(self.vsm, None, VSC_iter_f(self.__getstat), None);
+        return self.__buf
+        
+
+class VarnishLog(VarnishAPI):
+    def __init__(self, opt = '', sopath = 'libvarnishapi.so.1'):
+        VarnishAPI.__init__(self,sopath)
+
+        self.vsl     = self.lib.VSL_New()
+        self.vslq    = None
         self.__d_opt = 0
         self.__g_arg = 0
         self.__q_arg = None
@@ -193,7 +298,7 @@ class VarnishAPI:
                 self.__d_opt = 1
             elif op == "g":
                 #グルーピング指定
-                self.__g_arg =  self.lib.VSLQ_Name2Grouping(arg, -1)
+                self.__g_arg =  self.lib.__VSLQ_Name2Grouping(arg, -1)
                 if   self.__g_arg == -2:
                     error = "Ambiguous grouping type: %s" % (arg)
                     break
@@ -225,7 +330,7 @@ class VarnishAPI:
                 self.__r_arg = arg
             else:
                 #default
-                i = self.VSL_Arg(op, arg);
+                i = self.__VSL_Arg(op, arg);
                 if i < 0:
                     error = "%s" % self.lib.VSL_Error(self.vsl)
                     break
@@ -282,9 +387,6 @@ class VarnishAPI:
         i = self.lib.VSLQ_Dispatch(self.vslq, VSLQ_dispatch_f(self.__callBack), None);
         return(i)
     
-    #old func
-    def VSL_NonBlockingDispatch(self, cb):
-        self.DispatchSingle(cb)
 
     def DispatchSingle(self,cb):
         i = self.__cbMain(cb)
@@ -323,10 +425,10 @@ class VarnishAPI:
     
 
 
-    def VSL_Arg(self, opt, arg = '\0'):
+    def __VSL_Arg(self, opt, arg = '\0'):
         return self.lib.VSL_Arg(self.vsl, ord(opt), arg)
 
-    def VSLQ_Name2Grouping(self, arg):
+    def __VSLQ_Name2Grouping(self, arg):
         return self.lib.VSLQ_Name2Grouping(arg, -1)
     
     def __callBack(self,vsl, pt, fo):
@@ -376,3 +478,4 @@ class VarnishAPI:
                     self.__cb(self,level,vxid,vxid_parent,tag,type,data,isbin,length)
                 #print "vxid:%d tag:%d type:%s data:%s (len=%d)" % (vxid,tag,type,data,length)
         return(0)
+        
