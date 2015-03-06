@@ -1,6 +1,8 @@
 # coding: utf-8
 import varnishapi,time,os,sys,syslog,traceback
 
+
+
 class SampleVarnishLog:
 	def execute(self,vap):
 		#connect varnishapi
@@ -14,11 +16,13 @@ class SampleVarnishLog:
 		
 	def vapCallBack(self,vap,level,vxid,vxid_parent,tag,type,data,isbin,length):
 	    t_tag = vap.VSL_tags[tag]
-	    print "level:%d vxid:%d vxid_parent:%d tag:%s type:%s data:%s (isbin=%d,len=%d)" % (level,vxid,vxid_parent,t_tag,type,data,isbin,length)
+	    var   = vap.vut.tag2VarName(t_tag,data)
+	    print "level:%d vxid:%d vxid_parent:%d tag:%s var:%s type:%s data:%s (isbin=%d,len=%d)" % (level,vxid,vxid_parent,t_tag,var,type,data,isbin,length)
 
 def main(smp):
 	try:
-		vap = varnishapi.VarnishAPI(['-q','requrl ~ "/hello"','-g','request'])
+		#vap = varnishapi.VarnishLog(['-q','requrl ~ "/hello"','-g','request'])
+		vap = varnishapi.VarnishLog(['-c'])
 		smp.execute(vap)
 	except KeyboardInterrupt:
 		vap.Fini()

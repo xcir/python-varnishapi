@@ -216,7 +216,103 @@ class LIBVARNISHAPI13:
         #self.VSLQ_Dispatch.restype  = c_int
         #self.VSLQ_Dispatch.argtypes = (c_void_p, CFUNCTYPE ,c_void_p)
         
+class VSLUtil:
+    def tag2VarName(self, tag, data):
+        if not self.tags.has_key(tag):
+            return ''
         
+        r =  self.tags[tag]
+        if   r == '':
+            return ''
+        elif r[-1:] == '.':
+          return r + data.split(':',1)[0]
+        return (r)
+    
+    tags = {
+        'Debug'          : '',
+        'Error'          : '',
+        'CLI'            : '',
+        'SessOpen'       : '',
+        'SessClose'      : '',
+        'BackendOpen'    : '',
+        'BackendReuse'   : '',
+        'BackendClose'   : '',
+        'HttpGarbage'    : '',
+        'Backend'        : '',
+        'Length'         : '',
+        'FetchError'     : '',
+        'BogoHeader'     : '',
+        'LostHeader'     : '',
+        'TTL'            : '',
+        'Fetch_Body'     : '',
+        'VCL_acl'        : '',
+        'VCL_call'       : '',
+        'VCL_trace'      : '',
+        'VCL_return'     : '',
+        'ReqStart'       : 'client.ip',
+        'Hit'            : '',
+        'HitPass'        : '',
+        'ExpBan'         : '',
+        'ExpKill'        : '',
+        'WorkThread'     : '',
+        'ESI_xmlerror'   : '',
+        'Hash'           : '',
+        'Backend_health' : '',
+        'VCL_Log'        : '',
+        'VCL_Error'      : '',
+        'Gzip'           : '',
+        'Link'           : '',
+        'Begin'          : '',
+        'End'            : '',
+        'VSL'            : '',
+        'Storage'        : '',
+        'Timestamp'      : '',
+        'ReqAcct'        : '',
+        'ESI_BodyBytes'  : '',
+        'PipeAcct'       : '',
+        'BereqAcct'      : '',
+        'ReqMethod'      : 'req.method',
+        'ReqURL'         : 'req.url',
+        'ReqProtocol'    : 'req.proto',
+        'ReqStatus'      : '',
+        'ReqReason'      : '',
+        'ReqHeader'      : 'req.http.',
+        'ReqUnset'       : 'unset req.http.',
+        'ReqLost'        : '',
+        'RespMethod'     : '',
+        'RespURL'        : '',
+        'RespProtocol'   : 'resp.proto',
+        'RespStatus'     : 'resp.status',
+        'RespReason'     : 'resp.reason',
+        'RespHeader'     : 'resp.http.',
+        'RespUnset'      : 'unset resp.http.',
+        'RespLost'       : '',
+        'BereqMethod'    : 'bereq.method',
+        'BereqURL'       : 'bereq.url',
+        'BereqProtocol'  : 'bereq.proto',
+        'BereqStatus'    : '',
+        'BereqReason'    : '',
+        'BereqHeader'    : 'bereq.http.',
+        'BereqUnset'     : 'unset bereq.http.',
+        'BereqLost'      : '',
+        'BerespMethod'   : '',
+        'BerespURL'      : '',
+        'BerespProtocol' : 'beresp.proto',
+        'BerespStatus'   : 'beresp.status',
+        'BerespReason'   : 'beresp.reason',
+        'BerespHeader'   : 'beresp.http.',
+        'BerespUnset'    : 'unset beresp.http.',
+        'BerespLost'     : '',
+        'ObjMethod'      : '',
+        'ObjURL'         : '',
+        'ObjProtocol'    : 'obj.proto',
+        'ObjStatus'      : 'obj.status',
+        'ObjReason'      : 'obj.reason',
+        'ObjHeader'      : 'obj.http.',
+        'ObjUnset'       : 'unset obj.http.',
+        'ObjLost'        : '',
+    }
+
 class VarnishAPI:
     def __init__(self, opt = '', sopath = 'libvarnishapi.so.1'):
         self.lib     = cdll[sopath]
@@ -276,6 +372,7 @@ class VarnishLog(VarnishAPI):
     def __init__(self, opt = '', sopath = 'libvarnishapi.so.1'):
         VarnishAPI.__init__(self,sopath)
 
+        self.vut     = VSLUtil()
         self.vsl     = self.lib.VSL_New()
         self.vslq    = None
         self.__d_opt = 0
