@@ -8,7 +8,7 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2015-03-02
+:Date: 2015-03-07
 :Version: x.x-varnish40
 :Support Varnish Version: 4.0.x
 :Manual section: 3
@@ -23,7 +23,44 @@ DESCRIPTION
 Connect to libvarnish api by ctypes
 
 IN DEVELOPMENT.
+
 DON'T USE PRODUCTION.
+
+VSLUtil class
+---------------------------------------
+
+VSLUtil.tag2VarName
+-------------------
+
+Prototype
+        ::
+
+                tag2VarName(tag, data)
+
+Parameter
+        ::
+
+                
+                STRING tag
+                STRING data
+
+Return value
+        ::
+
+                STRING Variable name
+                
+
+Description
+        ::
+
+                Transcode spec and tagname to variable name
+Example
+        ::
+
+                vut = varnishapi.VSLUtil()
+
+                # output is "resp.http.Host"
+                print vut.tag2VarName('RespHeader','Host: example.net')
 
 
 
