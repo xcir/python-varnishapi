@@ -218,17 +218,17 @@ class LIBVARNISHAPI13:
         
 class VSLUtil:
     def tag2VarName(self, tag, data):
-        if not self.tags.has_key(tag):
+        if not self.__tags.has_key(tag):
             return ''
         
-        r =  self.tags[tag]
+        r =  self.__tags[tag]
         if   r == '':
             return ''
         elif r[-1:] == '.':
           return r + data.split(':',1)[0]
         return (r)
     
-    tags = {
+    __tags = {
         'Debug'          : '',
         'Error'          : '',
         'CLI'            : '',
@@ -319,7 +319,8 @@ class VarnishAPI:
         self.lva     = LIBVARNISHAPI13(self.lib)
         self.defi    = VarnishAPIDefine40()
         self.__cb    = None
-        self.vsm     = None
+        self.vsm     = self.lib.VSM_New()
+        self.d_opt = 0
         
         VSLTAGS           = c_char_p * 256
         self.VSL_tags     = VSLTAGS.in_dll(self.lib, "VSL_tags")
@@ -332,14 +333,54 @@ class VarnishAPI:
         self.VSLQ_grouping = VSLQGROUPING.in_dll(self.lib, "VSLQ_grouping")
         
         self.error   = ''
+        
+    def ArgDefault(self, op, arg):
+        if   op == "n":
+            #インスタンス指定
+            i = self.lib.VSM_n_Arg(self.vsm, arg)
+            if i <= 0:
+                error = "%s" % self.lib.VSM_Error(self.vsm)
+                return(i)
+        elif op == "N":
+            #VSMファイル指定
+            i = self.lib.VSM_N_Arg(self.vsm, arg)
+            if i <= 0:
+                error = "%s" % self.lib.VSM_Error(self.vsm)
+                return(i)
+            self.d_opt = 1
+        return(None)
 
         
 class VarnishStat(VarnishAPI):
-    def __init__(self, sopath = 'libvarnishapi.so.1'):
+    def __init__(self, opt='', sopath = 'libvarnishapi.so.1'):
         VarnishAPI.__init__(self,sopath)
-        self.vsm = self.lib.VSM_New()
         self.lib.VSM_Open(self.vsm)
+
+        if len(opt)>0:
+            self.__setArg(opt)
         
+    def __setArg(self,opt):
+        opts, args = getopt.getopt(opt,"bcCdx:X:r:q:N:n:I:i:g:")
+        error = 0
+        for o in opts:
+            op  = o[0].lstrip('-')
+            arg = o[1]
+            self.__Arg(op,arg)
+        
+        #Check
+        if self.__r_arg and self.vsm:
+            error = "Can't have both -n and -r options"
+        
+        if error:
+            self.error = error
+            return(0)
+        return(1)
+
+    def __Arg(self, op, arg):
+        #default
+        VarnishAPI.__Arg(op, arg)
+        if i < 0:
+            return(i)
 
     def __getstat(self, priv, pt):
         
@@ -375,62 +416,22 @@ class VarnishLog(VarnishAPI):
         self.vut     = VSLUtil()
         self.vsl     = self.lib.VSL_New()
         self.vslq    = None
-        self.__d_opt = 0
         self.__g_arg = 0
         self.__q_arg = None
         self.__r_arg = 0
         self.name    = ''
         
         if len(opt)>0:
-            self.__Arg(opt)
-        
-    def __Arg(self, opt):
+            self.__setArg(opt)
+            
+    def __setArg(self,opt):
         opts, args = getopt.getopt(opt,"bcCdx:X:r:q:N:n:I:i:g:")
         error = 0
         for o in opts:
             op  = o[0].lstrip('-')
             arg = o[1]
-            if   op == "d":
-                #先頭から
-                self.__d_opt = 1
-            elif op == "g":
-                #グルーピング指定
-                self.__g_arg =  self.lib.__VSLQ_Name2Grouping(arg, -1)
-                if   self.__g_arg == -2:
-                    error = "Ambiguous grouping type: %s" % (arg)
-                    break
-                elif self.__g_arg < 0:
-                    error = "Unknown grouping type: %s" % (arg)
-                    break
-            elif op == "n":
-                #インスタンス指定
-                if not self.vsm:
-                    self.vsm = self.lib.VSM_New()
-                if self.lib.VSM_n_Arg(self.vsm, arg) <= 0:
-                    error = "%s" % self.lib.VSM_Error(self.vsm)
-                    break
-            elif op == "N":
-                #VSMファイル指定
-                if not self.vsm:
-                    self.vsm = self.lib.VSM_New()
-                if self.lib.VSM_N_Arg(self.vsm, arg) <= 0:
-                    error = "%s" % self.lib.VSM_Error(self.vsm)
-                    break
-                self.__d_opt = 1
-            #elif op == "P":
-            #    #PID指定は対応しない
-            elif op == "q":
-                #VSL-query
-                self.__q_arg = arg
-            elif op == "r":
-                #バイナリファイル
-                self.__r_arg = arg
-            else:
-                #default
-                i = self.__VSL_Arg(op, arg);
-                if i < 0:
-                    error = "%s" % self.lib.VSL_Error(self.vsl)
-                    break
+            self.__Arg(op,arg)
+        
         #Check
         if self.__r_arg and self.vsm:
             error = "Can't have both -n and -r options"
@@ -439,20 +440,50 @@ class VarnishLog(VarnishAPI):
             self.error = error
             return(0)
         return(1)
+
+    def __Arg(self, op, arg):
+        i = VarnishAPI.ArgDefault(self,op, arg)
+        if i != None:
+            return(i)
+            
+        if   op == "d":
+            #先頭から
+            self.d_opt = 1
+        elif op == "g":
+            #グルーピング指定
+            self.__g_arg =  self.lib.__VSLQ_Name2Grouping(arg, -1)
+            if   self.__g_arg == -2:
+                error = "Ambiguous grouping type: %s" % (arg)
+                return(self.__g_arg)
+            elif self.__g_arg < 0:
+                error = "Unknown grouping type: %s" % (arg)
+                return(self.__g_arg)
+        #elif op == "P":
+        #    #PID指定は対応しない
+        elif op == "q":
+            #VSL-query
+            self.__q_arg = arg
+        elif op == "r":
+            #バイナリファイル
+            self.__r_arg = arg
+        else:
+            #default
+            i = self.__VSL_Arg(op, arg);
+            if i < 0:
+                error = "%s" % self.lib.VSL_Error(self.vsl)
+            return(i)
         
     def Setup(self):
         if self.__r_arg:
             c = self.lva.VSL_CursorFile(self.vsl, self.__r_arg, 0);
         else:
-            if not self.vsm:
-                self.vsm = self.lib.VSM_New()
             if self.lib.VSM_Open(self.vsm):
                 self.error = "Can't open VSM file (%s)" % self.VSM_Error(self.vsm)
                 return(0)
             self.name = self.lva.VSM_Name(self.vsm)
 
             c = self.lva.VSL_CursorVSM(self.vsl, self.vsm,
-                (self.defi.VSL_COPT_TAILSTOP if self.__d_opt else self.defi.VSL_COPT_TAIL) | self.defi.VSL_COPT_BATCH
+                (self.defi.VSL_COPT_TAILSTOP if self.d_opt else self.defi.VSL_COPT_TAIL) | self.defi.VSL_COPT_BATCH
                 )
             
         if not c:
