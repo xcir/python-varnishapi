@@ -3,11 +3,11 @@ import varnishapi,time,os,sys,syslog,traceback
 
 
 
+
 class SampleVarnishLog:
 	def execute(self,vap):
 		#connect varnishapi
 		self.vap     = vap
-		self.vap.Setup()
 		while 1:
 			ret = self.vap.DispatchMulti(self.vapCallBack)
 			if 0 == ret:

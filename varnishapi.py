@@ -424,6 +424,8 @@ class VarnishLog(VarnishAPI):
         if len(opt)>0:
             self.__setArg(opt)
             
+        self.__Setup()
+            
     def __setArg(self,opt):
         opts, args = getopt.getopt(opt,"bcCdx:X:r:q:N:n:I:i:g:")
         error = 0
@@ -473,7 +475,7 @@ class VarnishLog(VarnishAPI):
                 error = "%s" % self.lib.VSL_Error(self.vsl)
             return(i)
         
-    def Setup(self):
+    def __Setup(self):
         if self.__r_arg:
             c = self.lva.VSL_CursorFile(self.vsl, self.__r_arg, 0);
         else:
