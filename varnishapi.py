@@ -403,7 +403,7 @@ class VarnishStat(VarnishAPI):
         
         return(0)
         
-    def getstat(self):
+    def getStats(self):
         self.__buf = {}
         self.lib.VSC_Iter(self.vsm, None, VSC_iter_f(self.__getstat), None);
         return self.__buf
