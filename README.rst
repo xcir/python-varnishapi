@@ -57,10 +57,85 @@ Description
 Example
         ::
 
-                vut = varnishapi.VSLUtil()
+                vut = VSLUtil()
 
                 # output is "resp.http.Host"
                 print vut.tag2VarName('RespHeader','Host: example.net')
+
+
+VarnishStat class
+---------------------------------------
+
+VarnishStat.__init__
+-----------------------
+
+Prototype
+        ::
+
+                varnishapi(opt = '', sopath = 'libvarnishapi.so.1')
+
+Parameter
+        ::
+
+                LIST   arg [OPTION]
+                STRING libvarnishapi path [OPTION]
+
+Return value
+        ::
+
+                class object
+                
+
+Description
+        ::
+
+                initialize
+Example
+        ::
+
+                vsc = VarnishStat()
+                
+                #set arg
+                vsc = VarnishStat(['-n', 'v2'])
+
+VarnishStat.getStats
+---------------------
+
+Prototype
+        ::
+
+                getStat()
+
+Parameter
+        ::
+
+                
+                VOID
+
+Return value
+        ::
+
+                DICT stats
+                
+
+Description
+        ::
+
+                Get statistics counter
+Example
+        ::
+
+                vsc = varnishapi.VarnishStat()
+                r= vsc.getStat();
+                for k,v in r.iteritems():
+                    #output
+                    #                         MAIN.fetch_zero                    0 Fetch zero len body
+                    #                              MAIN.vmods                    1 Loaded VMODs
+                    #                       MAIN.sess_dropped                    0 Sessions dropped for thread
+                    #                           LCK.ban.locks              1457831 Lock Operations
+                    #...
+                    print "%40s %20s %s" % (k,v['val'],v['desc'])
+
 
 
 
