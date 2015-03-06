@@ -298,7 +298,7 @@ class VarnishLog(VarnishAPI):
                 self.__d_opt = 1
             elif op == "g":
                 #グルーピング指定
-                self.__g_arg =  self.lib.VSLQ_Name2Grouping(arg, -1)
+                self.__g_arg =  self.lib.__VSLQ_Name2Grouping(arg, -1)
                 if   self.__g_arg == -2:
                     error = "Ambiguous grouping type: %s" % (arg)
                     break
@@ -330,7 +330,7 @@ class VarnishLog(VarnishAPI):
                 self.__r_arg = arg
             else:
                 #default
-                i = self.VSL_Arg(op, arg);
+                i = self.__VSL_Arg(op, arg);
                 if i < 0:
                     error = "%s" % self.lib.VSL_Error(self.vsl)
                     break
@@ -387,9 +387,6 @@ class VarnishLog(VarnishAPI):
         i = self.lib.VSLQ_Dispatch(self.vslq, VSLQ_dispatch_f(self.__callBack), None);
         return(i)
     
-    #old func
-    def VSL_NonBlockingDispatch(self, cb):
-        self.DispatchSingle(cb)
 
     def DispatchSingle(self,cb):
         i = self.__cbMain(cb)
@@ -428,10 +425,10 @@ class VarnishLog(VarnishAPI):
     
 
 
-    def VSL_Arg(self, opt, arg = '\0'):
+    def __VSL_Arg(self, opt, arg = '\0'):
         return self.lib.VSL_Arg(self.vsl, ord(opt), arg)
 
-    def VSLQ_Name2Grouping(self, arg):
+    def __VSLQ_Name2Grouping(self, arg):
         return self.lib.VSLQ_Name2Grouping(arg, -1)
     
     def __callBack(self,vsl, pt, fo):
