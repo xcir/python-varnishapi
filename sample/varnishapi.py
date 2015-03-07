@@ -453,7 +453,7 @@ class VarnishLog(VarnishAPI):
             self.d_opt = 1
         elif op == "g":
             #グルーピング指定
-            self.__g_arg =  self.lib.__VSLQ_Name2Grouping(arg, -1)
+            self.__g_arg =  self.__VSLQ_Name2Grouping(arg)
             if   self.__g_arg == -2:
                 error = "Ambiguous grouping type: %s" % (arg)
                 return(self.__g_arg)

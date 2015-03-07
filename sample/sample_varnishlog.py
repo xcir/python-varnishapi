@@ -9,7 +9,7 @@ class SampleVarnishLog:
 		#connect varnishapi
 		self.vap     = vap
 		while 1:
-			ret = self.vap.DispatchMulti(self.vapCallBack)
+			ret = self.vap.Dispatch(self.vapCallBack)
 			if 0 == ret:
 				time.sleep(0.5)
 		
@@ -19,13 +19,14 @@ class SampleVarnishLog:
 		vxid        = cbd['vxid']
 		vxid_parent = cbd['vxid_parent']
 		type        = cbd['type']
+		tag         = cbd['tag']
 		data        = cbd['data']
 		isbin       = cbd['isbin']
 		length      = cbd['length']
-	    t_tag = vap.VSL_tags[tag]
-	    var   = vap.vut.tag2VarName(t_tag,data)
+		t_tag = vap.VSL_tags[tag]
+		var   = vap.vut.tag2VarName(t_tag,data)
 	    
-	    print "level:%d vxid:%d vxid_parent:%d tag:%s var:%s type:%s data:%s (isbin=%d,len=%d)" % (level,vxid,vxid_parent,t_tag,var,type,data,isbin,length)
+		print "level:%d vxid:%d vxid_parent:%d tag:%s var:%s type:%s data:%s (isbin=%d,len=%d)" % (level,vxid,vxid_parent,t_tag,var,type,data,isbin,length)
 
 def main(smp):
 	try:
