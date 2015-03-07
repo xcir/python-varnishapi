@@ -106,8 +106,10 @@ class vsb(Structure):
         ("magic" , c_uint),       #unsigned   magic;
         ("s_buf", c_char_p),      #char       *s_buf;    /* storage buffer */
         ("s_error", c_int),       #int        s_error;   /* current error code */
-        ("s_size", c_ssize_t),    #ssize_t    s_size;    /* size of storage buffer */
-        ("s_len", c_ssize_t),     #ssize_t    s_len;     /* current length of string */
+        #("s_size", c_ssize_t),    #ssize_t    s_size;    /* size of storage buffer */
+        #("s_len", c_ssize_t),     #ssize_t    s_len;     /* current length of string */
+        ("s_size", c_long),       #ssize_t    s_size;    /* size of storage buffer */
+        ("s_len", c_long),        #ssize_t    s_len;     /* current length of string */
         ("s_flags", c_int),       #int        s_flags;   /* flags */
        ]
 
@@ -394,10 +396,10 @@ class VarnishStat(VarnishAPI):
         type  = sec[0].fantom[0].type
         ident = sec[0].fantom[0].ident
         if type != '':
-            key=key + type + '.'
+            key += type + '.'
         if ident != '':
-            key=key + ident + '.'
-        key=key + pt[0].desc[0].name
+            key += ident + '.'
+        key += pt[0].desc[0].name
         
         self.__buf[key]={'val':val,'desc':pt[0].desc[0].sdesc}
         
@@ -480,7 +482,7 @@ class VarnishLog(VarnishAPI):
             c = self.lva.VSL_CursorFile(self.vsl, self.__r_arg, 0);
         else:
             if self.lib.VSM_Open(self.vsm):
-                self.error = "Can't open VSM file (%s)" % self.VSM_Error(self.vsm)
+                self.error = "Can't open VSM file (%s)" % self.lib.VSM_Error(self.vsm)
                 return(0)
             self.name = self.lva.VSM_Name(self.vsm)
 
@@ -560,7 +562,7 @@ class VarnishLog(VarnishAPI):
     def __callBack(self,vsl, pt, fo):
         idx = -1
         while 1:
-            idx=idx+1
+            idx += 1
             t = pt[idx]
             if not bool(t):
                 break

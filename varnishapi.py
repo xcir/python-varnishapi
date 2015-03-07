@@ -396,10 +396,10 @@ class VarnishStat(VarnishAPI):
         type  = sec[0].fantom[0].type
         ident = sec[0].fantom[0].ident
         if type != '':
-            key=key + type + '.'
+            key += type + '.'
         if ident != '':
-            key=key + ident + '.'
-        key=key + pt[0].desc[0].name
+            key += ident + '.'
+        key += pt[0].desc[0].name
         
         self.__buf[key]={'val':val,'desc':pt[0].desc[0].sdesc}
         
@@ -562,7 +562,7 @@ class VarnishLog(VarnishAPI):
     def __callBack(self,vsl, pt, fo):
         idx = -1
         while 1:
-            idx=idx+1
+            idx += 1
             t = pt[idx]
             if not bool(t):
                 break
