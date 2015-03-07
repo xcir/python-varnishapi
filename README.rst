@@ -246,6 +246,45 @@ Example
                         time.sleep(0.5)
                 vsl.Fini()
 
+VarnishLog.VSL_tags
+-----------------------
+
+Prototype
+        ::
+
+                #This is dictionary variable
+                VSL_tags[tag]
+
+Return value
+        ::
+
+                STRING tagname
+                
+
+Description
+        ::
+
+                Transcode tag index to tag text
+
+Example
+        ::
+
+                def cb(vap,cbd,priv):
+                    #output
+                    #...
+                    #VCL_call
+                    #VCL_return
+                    #...
+                    print vap.VSL_tags[cbd['tag']]
+
+                vsl = varnishapi.VarnishLog(['-c'])
+                while 1:
+                    ret = vsl.Dispatch(cb)
+                    if 0 == ret:
+                        time.sleep(0.5)
+                vsl.Fini()
+
+
 HISTORY
 ===========
 
