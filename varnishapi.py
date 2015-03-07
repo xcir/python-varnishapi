@@ -480,7 +480,7 @@ class VarnishLog(VarnishAPI):
             c = self.lva.VSL_CursorFile(self.vsl, self.__r_arg, 0);
         else:
             if self.lib.VSM_Open(self.vsm):
-                self.error = "Can't open VSM file (%s)" % self.VSM_Error(self.vsm)
+                self.error = "Can't open VSM file (%s)" % self.lib.VSM_Error(self.vsm)
                 return(0)
             self.name = self.lva.VSM_Name(self.vsm)
 
