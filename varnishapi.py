@@ -501,8 +501,9 @@ class VarnishLog(VarnishAPI):
         
         return(1)
         
-    def __cbMain(self,cb):
-        self.__cb = cb
+    def __cbMain(self,cb,priv=None):
+        self.__cb   = cb
+        self.__priv = priv
         if not self.vslq:
             if self.lib.VSM_Open(self.vsm):
                 self.lib.VSM_ResetError(self.vsm)
@@ -518,8 +519,8 @@ class VarnishLog(VarnishAPI):
         return(i)
     
 
-    def __Dispatch(self,cb):
-        i = self.__cbMain(cb)
+    def __Dispatch(self,cb,priv=None):
+        i = self.__cbMain(cb,priv)
         if i > -2:
             return i
         if not self.vsm:
@@ -535,9 +536,9 @@ class VarnishLog(VarnishAPI):
             self.error = "Log overrun"
         return i
         
-    def Dispatch(self,cb):
+    def Dispatch(self,cb,priv = None):
         while 1:
-            i = self.__Dispatch(cb)
+            i = self.__Dispatch(cb,priv)
             if i==0:
                 return(i)
 
@@ -570,10 +571,12 @@ class VarnishLog(VarnishAPI):
                 break
             tra=t[0]
             c  =tra.c[0]
-            level       = tra.level
-            vxid        = tra.vxid
-            vxid_parent = tra.vxid_parent
-            reason      = tra.reason
+            cbd = {
+                'level'       : tra.level,
+                'vxid'        : tra.vxid,
+                'vxid_parent' : tra.vxid_parent,
+                'reason'      : tra.reason,
+                }
             
             if vsl[0].c_opt or vsl[0].b_opt:
                 if   tra.type == self.defi.VSL_t_req and not vsl[0].c_opt:
@@ -594,18 +597,19 @@ class VarnishLog(VarnishAPI):
                 
                 #decode vxid type ...
                 length =c.rec.ptr[0] & 0xffff
-                #vxid   =c.rec.ptr[1] & (~(3<<30))
-                data   =string_at(c.rec.ptr,length + 8)[8:]
+                cbd['length']=length
+                cbd['data']   =string_at(c.rec.ptr,length + 8)[8:]
                 tag    =c.rec.ptr[0] >> 24
+                cbd['tag'] =tag
                 if c.rec.ptr[1] &(1<< 30):
-                    type = 'c'
+                    cbd['type'] = 'c'
                 elif c.rec.ptr[1] &(1<< 31):
-                    type = 'b'
+                    cbd['type'] = 'b'
                 else:
-                    type = '-'
-                isbin = self.VSL_tagflags[tag] & self.defi.SLT_F_BINARY
+                    cbd['type'] = '-'
+                cbd['isbin'] = self.VSL_tagflags[tag] & self.defi.SLT_F_BINARY
                 if self.__cb:
-                    self.__cb(self,level,vxid,vxid_parent,tag,type,data,isbin,length)
+                    self.__cb(self,cbd,self.__priv)
                 #print "vxid:%d tag:%d type:%s data:%s (len=%d)" % (vxid,tag,type,data,length)
         return(0)
         
