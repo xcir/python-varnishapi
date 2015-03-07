@@ -106,8 +106,10 @@ class vsb(Structure):
         ("magic" , c_uint),       #unsigned   magic;
         ("s_buf", c_char_p),      #char       *s_buf;    /* storage buffer */
         ("s_error", c_int),       #int        s_error;   /* current error code */
-        ("s_size", c_ssize_t),    #ssize_t    s_size;    /* size of storage buffer */
-        ("s_len", c_ssize_t),     #ssize_t    s_len;     /* current length of string */
+        #("s_size", c_ssize_t),    #ssize_t    s_size;    /* size of storage buffer */
+        #("s_len", c_ssize_t),     #ssize_t    s_len;     /* current length of string */
+        ("s_size", c_long),       #ssize_t    s_size;    /* size of storage buffer */
+        ("s_len", c_long),        #ssize_t    s_len;     /* current length of string */
         ("s_flags", c_int),       #int        s_flags;   /* flags */
        ]
 
