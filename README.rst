@@ -8,38 +8,41 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2014-03-11
-:Version: 0.3
+:Date: 2015-03-07
+:Version: x.x-varnish40
+:Support Varnish Version: 4.0.x
 :Manual section: 3
 
-
+For Varnish3.0.x
+=================
+See this link.
+https://github.com/xcir/python-varnishapi/tree/varnish30
 
 DESCRIPTION
 ============
 Connect to libvarnish api by ctypes
 
+IN DEVELOPMENT.
+
+DON'T USE PRODUCTION.
 
 VSLUtil class
 ---------------------------------------
 
-VSLUtil.tag2VarKey
+VSLUtil.tag2VarName
 -------------------
 
 Prototype
         ::
 
-                tag2VarKey(spec, tag)
+                tag2VarName(tag, data)
 
 Parameter
         ::
 
-                INT    spec
-                  1 : client
-                  2 : backend
-                  0 : other
-                
                 
                 STRING tag
+                STRING data
 
 Return value
         ::
@@ -54,66 +57,27 @@ Description
 Example
         ::
 
-                vut = varnishapi.VSLUtil()
+                vut = VSLUtil()
 
-                # output is "resp.response"
-                print vut.tag2VarKey(1, 'TxResponse')
-
-VSLUtil.tags
--------------------
-
-Prototype
-        ::
-
-                #This is dictionary variable
-                tags[spec][tagName]
-
-Parameter
-        ::
-
-                INT    spec
-                  1 : client
-                  2 : backend
-                  0 : other
-                
-                
-                STRING tagName
-
-Return value
-        ::
-
-                STRING Variable name
-                
-
-Description
-        ::
-
-                Transcode spec and tagname to variable name
-Example
-        ::
-
-                vut = varnishapi.VSLUtil()
-
-                # output is "resp.response"
-                print vut.tags[1]['TxResponse']
+                # output is "resp.http.Host"
+                print vut.tag2VarName('RespHeader','Host: example.net')
 
 
-
-VarnishAPI class
+VarnishStat class
 ---------------------------------------
 
-VarnishAPI.__init__
--------------------
+VarnishStat.__init__
+-----------------------
 
 Prototype
         ::
 
-                varnishapi(opt = '', sopath = 'libvarnishapi.so.1')
+                VarnishStat(opt = '', sopath = 'libvarnishapi.so.1')
 
 Parameter
         ::
 
-                LIST   VSL arg [OPTION]
+                LIST   arg [OPTION]
                 STRING libvarnishapi path [OPTION]
 
 Return value
@@ -129,252 +93,178 @@ Description
 Example
         ::
 
-                vap = varnishapi.VarnishAPI()
+                vsc = VarnishStat()
                 
-                #set VSL arg
-                vap = varnishapi.VarnishAPI(['-c', '-i', 'RxUrl'])
+                #set arg
+                vsc = VarnishStat(['-n', 'v2'])
 
-
-VarnishAPI.VSL_Dispatch
--------------------
+VarnishStat.getStats
+---------------------
 
 Prototype
         ::
 
-                VSL_Dispatch(func, priv = False)
+                getStat()
 
 Parameter
         ::
 
-                VSL_handler_f func
-                object priv
+                
+                VOID
 
 Return value
         ::
 
-                void
+                DICT stats
+                
+
+Description
+        ::
+
+                Get statistics counter
+Example
+        ::
+
+                vsc = varnishapi.VarnishStat()
+                r= vsc.getStat();
+                for k,v in r.iteritems():
+                    #output
+                    #                         MAIN.fetch_zero                    0 Fetch zero len body
+                    #                              MAIN.vmods                    1 Loaded VMODs
+                    #                       MAIN.sess_dropped                    0 Sessions dropped for thread
+                    #                           LCK.ban.locks              1457831 Lock Operations
+                    #...
+                    print "%40s %20s %s" % (k,v['val'],v['desc'])
+
+
+VarnishLog class
+---------------------------------------
+
+VarnishLog.__init__
+-----------------------
+
+Prototype
+        ::
+
+                VarnishLog(opt = '', sopath = 'libvarnishapi.so.1')
+
+Parameter
+        ::
+
+                LIST   arg [OPTION]
+                STRING libvarnishapi path [OPTION]
+
+Return value
+        ::
+
+                class object
+                
+
+Description
+        ::
+
+                initialize
+Example
+        ::
+
+                vsl = VarnishLog()
+                
+                #set arg
+                vsl = VarnishLog(['-n', 'v2'])
+
+
+VarnishLog.Fini
+-----------------------
+
+Prototype
+        ::
+
+                Fini()
+
+Parameter
+        ::
+
+                VOID
+
+Return value
+        ::
+
+                VOID
+                
+
+Description
+        ::
+
+                finish
+Example
+        ::
+
+                vsl = VarnishLog()
+                ...
+                vsl.Fini()
+
+VarnishLog.Dispatch
+-----------------------
+
+Prototype
+        ::
+
+                Dispatch(cb, priv = None)
+
+Parameter
+        ::
+
+                FUNC    cb   callback function
+                OBJECT  priv 
+
+Return value
+        ::
+
+                INT
                 
 
 Description
         ::
 
                 Dispatch callback function
+
 Example
         ::
 
-                def vapCallBack(priv, tag, fd, length, spec, ptr, bm):
-                    print 'hello'
+                def cb(vap,cbd,priv):
+                    #output
+                    #...
+                    #{'level': 0L, 'type': 'c', 'reason': 0, 'vxid_parent': 0, 'length': 22L, 'tag': 26L, 'vxid': 65709, 'data': 'Vary: Accept-Encoding\x00', 'isbin': 0L}
+                    #{'level': 0L, 'type': 'c', 'reason': 0, 'vxid_parent': 0, 'length': 23L, 'tag': 26L, 'vxid': 65709, 'data': 'Content-Encoding: gzip\x00', 'isbin': 0L}
+                    #...
+                    print cbd
 
-                def main():
-                    vap = varnishapi.VarnishAPI()
-                    while 1:
-                        vap.VSL_Dispatch(vapCallBack)
-                    
-                main()
-
-
-VarnishAPI.VSL_NonBlockingDispatch
--------------------
-
-Prototype
-        ::
-
-                VSL_NonBlockingDispatch(func, priv = False)
-
-Parameter
-        ::
-
-                VSL_handler_f func
-                object priv
-
-Return value
-        ::
-
-                void
-                
-
-Description
-        ::
-
-                Dispatch callback function.(None blocking)
-Example
-        ::
-
-                def vapCallBack(priv, tag, fd, length, spec, ptr, bm):
-                    print 'hello'
-
-                def main():
-                    vap = varnishapi.VarnishAPI()
-                    while 1:
-                        vap.VSL_NonBlockingDispatch(vapCallBack)
-                        sleep(0.1)
-                    
-                main()
-
-VarnishAPI.VSM_ReOpen
--------------------
-
-Prototype
-        ::
-
-                VSM_ReOpen(diag = 0)
-
-Parameter
-        ::
-
-                int diag
-
-Return value
-        ::
-
-                int
-
-Description
-        ::
-
-                Check if shared memory segment needs to be reopened/remapped.
-                VSM reopen/remap ,as required.
-Example
-        ::
-
-                class sample
-                    def vapCallBack(self, priv, tag, fd, length, spec, ptr, bm):
-                        self.last = time.time()
-                        print 'hello'
-
-                    def execute(self):
-                        self.vap  = varnishapi.VarnishAPI()
-                        self.last = int(time.time())
-                        while 1:
-                            self.vap.VSL_NonBlockingDispatch(self.vapCallBack)
-                            time.sleep(0.1)
-                            #Check vsm
-                            if int(time.time()) - self.last > 5:
-                                self.vap.VSM_ReOpen()
-                                self.last  = int(time.time())
-
-                smp = sample()
-                smp.execute()
-
-
-VarnishAPI.VSL_Name2Tag
--------------------
-
-Prototype
-        ::
-
-                VSL_Name2Tag(name)
-
-Parameter
-        ::
-
-                STRING name
-
-Return value
-        ::
-
-                INT tagNumber
-                
-
-Description
-        ::
-
-                Convert Name to Tag.
-Example
-        ::
-
-                    vap = varnishapi.VarnishAPI()
-                    vap.VSL_Name2Tag("ReqEnd")
-
-VarnishAPI.VSL_NameNormalize
--------------------
-
-Prototype
-        ::
-
-                VSL_NameNormalize(name)
-
-Parameter
-        ::
-
-                STRING name
-
-Return value
-        ::
-
-                STRING name
-                
-
-Description
-        ::
-
-                Normalize to name
-Example
-        ::
-
-                    vap = varnishapi.VarnishAPI()
-                    # output is ReqEnd
-                    print vap.VSL_NameNormalize("rEqeNd")
-
-VarnishAPI.normalizeDic
--------------------
-
-Prototype
-        ::
-
-                normalizeDic(priv, tag, fd, length, spec, ptr, bm)
-
-Parameter
-        ::
-
-                c_void_p    priv
-                c_int       tag
-                c_uint      fd
-                c_uint      length
-                c_uint      spec
-                c_char_p    ptr
-                c_ulonglong bm
-
-Return value
-        ::
-
-                DICT data
-                
-
-Description
-        ::
-
-                Process to callback data.
-Example
-        ::
-
-                class sample:
-                   def vapCallBack(self, priv, tag, fd, length, spec, ptr, bm):
-                       r = self.vap.normalizeDic(priv, tag, fd, length, spec, ptr, bm)
-                       print r['fd']
-                       print r['type']
-                       print r['typeName']
-                       print r['tag']
-                       print r['msg']
-                
-                
-                   def main(self):
-                       self.vap = varnishapi.VarnishAPI('', '/usr/lib64/libvarnishapi.so.1')
-                       while 1:
-                           self.vap.VSL_NonBlockingDispatch(self.vapCallBack)
-                           time.sleep(0.1)
-                
-                cl=sample()
-                cl.main()
+                vsl = varnishapi.VarnishLog(['-c'])
+                while 1:
+                    ret = vsl.Dispatch(cb)
+                    if 0 == ret:
+                        time.sleep(0.5)
+                vsl.Fini()
 
 HISTORY
 ===========
 
-Version 0.3: Support VSM_ReOpen
+Version x.x-varnish40: Support change to Varnish4
 
-Version 0.2: Support VSL_Arg
+Version 0.3-varnish30: Support VSM_ReOpen
 
-Version 0.1: First version
+Version 0.2-varnish30: Support VSL_Arg
+
+Version 0.1-varnish30: First version
 
 
+COPYRIGHT
+===========
 
+python-varnishapi
+
+* Copyright (c) 2015 Shohei Tanaka(@xcir)
+
+Varnish Cache
+
+* Copyright (c) 2006-2015 Varnish Software AS

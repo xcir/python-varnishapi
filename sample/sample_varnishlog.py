@@ -1,58 +1,44 @@
 # coding: utf-8
+import varnishapi,time,os,sys,syslog,traceback
 
-import varnishapi,time
 
-def main():
-	smp = SampleVarnishLog()
-	smp.execute()
+
 
 class SampleVarnishLog:
-	def __init__(self):
+	def execute(self,vap):
 		#connect varnishapi
-		self.vap     = varnishapi.VarnishAPI()
-		#utils
-		self.vslutil = varnishapi.VSLUtil()
-
-	def execute(self):
+		self.vap     = vap
 		while 1:
-			#dispatch
-			self.vap.VSL_NonBlockingDispatch(self.vapCallBack)
-			time.sleep(0.1)
-
-	def vapCallBack(self, priv, tag, fd, length, spec, ptr, bm):
-		if spec == 0:
-			return
-
-		nml = self.vap.normalizeDic(priv, tag, fd, length, spec, ptr, bm)
-		'''
-			[rawdata]
-			12 ObjHeader    c Cache-Control: max-age=0, no-cache
-			
-			[dict]
-			'fd'      : 12,
-			'type'    : 1,
-			'typeName': 'c',
-			'tag'     : 'ObjHeader',
-			'msg'     : 'Cache-Control: max-age=0, no-cache',
-		'''
+			ret = self.vap.DispatchMulti(self.vapCallBack)
+			if 0 == ret:
+				time.sleep(0.5)
 		
-		tagprx = nml['tag'][0:2];
-		if spec == 1:
-			if tagprx == "Rx":
-				nml['rxtx'] = 'Client -> Varnish'
-			elif tagprx == "Tx":
-				nml['rxtx'] = 'Client <- Varnish'
-			else:
-				nml['rxtx'] = "Client"
-		elif spec == 2:
-			if tagprx == "Rx":
-				nml['rxtx'] = 'Varnish <- Backend'
-			elif tagprx == "Tx":
-				nml['rxtx'] = 'Varnish -> Backend'
-			else:
-				nml['rxtx'] = "Backend"
+		
+	def vapCallBack(self,vap,cbd,priv):
+		level       = cbd['level']
+		vxid        = cbd['vxid']
+		vxid_parent = cbd['vxid_parent']
+		type        = cbd['type']
+		data        = cbd['data']
+		isbin       = cbd['isbin']
+		length      = cbd['length']
+	    t_tag = vap.VSL_tags[tag]
+	    var   = vap.vut.tag2VarName(t_tag,data)
+	    
+	    print "level:%d vxid:%d vxid_parent:%d tag:%s var:%s type:%s data:%s (isbin=%d,len=%d)" % (level,vxid,vxid_parent,t_tag,var,type,data,isbin,length)
 
-		nml['var'] = self.vslutil.tag2VarName(spec, nml['tag'])
-		print "%5d %-20s %-12s %-16s %s" % (nml['fd'], nml['rxtx'], nml['tag'], nml['var'], nml['msg'])
+def main(smp):
+	try:
+		vap = varnishapi.VarnishLog(['-g','raw'])
+		smp.execute(vap)
+	except KeyboardInterrupt:
+		vap.Fini()
+	except Exception as e:
+		syslog.openlog(sys.argv[0], syslog.LOG_PID|syslog.LOG_PERROR, syslog.LOG_LOCAL0)
+		syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
 
-main()
+if __name__ == '__main__':
+	smp = SampleVarnishLog()
+	main(smp)
+
+	    
