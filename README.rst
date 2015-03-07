@@ -72,7 +72,7 @@ VarnishStat.__init__
 Prototype
         ::
 
-                varnishapi(opt = '', sopath = 'libvarnishapi.so.1')
+                VarnishStat(opt = '', sopath = 'libvarnishapi.so.1')
 
 Parameter
         ::
@@ -137,7 +137,109 @@ Example
                     print "%40s %20s %s" % (k,v['val'],v['desc'])
 
 
+VarnishLog class
+---------------------------------------
 
+VarnishLog.__init__
+-----------------------
+
+Prototype
+        ::
+
+                VarnishLog(opt = '', sopath = 'libvarnishapi.so.1')
+
+Parameter
+        ::
+
+                LIST   arg [OPTION]
+                STRING libvarnishapi path [OPTION]
+
+Return value
+        ::
+
+                class object
+                
+
+Description
+        ::
+
+                initialize
+Example
+        ::
+
+                vsl = VarnishLog()
+                
+                #set arg
+                vsl = VarnishLog(['-n', 'v2'])
+
+
+VarnishLog.Fini
+-----------------------
+
+Prototype
+        ::
+
+                Fini()
+
+Parameter
+        ::
+
+                VOID
+
+Return value
+        ::
+
+                VOID
+                
+
+Description
+        ::
+
+                finish
+Example
+        ::
+
+                vsl = VarnishLog()
+                ...
+                vsl.Fini()
+
+VarnishLog.Dispatch
+-----------------------
+
+Prototype
+        ::
+
+                Dispatch(cb, priv = None)
+
+Parameter
+        ::
+
+                FUNC    cb   callback function
+                OBJECT  priv 
+
+Return value
+        ::
+
+                INT
+                
+
+Description
+        ::
+
+                Dispatch callback function
+
+Example
+        ::
+
+                def cb(vap,cbd,priv):
+                    print cbd
+
+                vsl = varnishapi.VarnishLog(['-c'])
+                while 1:
+                    ret = vsl.Dispatch(cb)
+                    if 0 == ret:
+                        time.sleep(0.5)
+                vsl.Fini()
 
 HISTORY
 ===========
