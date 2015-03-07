@@ -232,6 +232,11 @@ Example
         ::
 
                 def cb(vap,cbd,priv):
+                    #output
+                    #...
+                    #{'level': 0L, 'type': 'c', 'reason': 0, 'vxid_parent': 0, 'length': 22L, 'tag': 26L, 'vxid': 65709, 'data': 'Vary: Accept-Encoding\x00', 'isbin': 0L}
+                    #{'level': 0L, 'type': 'c', 'reason': 0, 'vxid_parent': 0, 'length': 23L, 'tag': 26L, 'vxid': 65709, 'data': 'Content-Encoding: gzip\x00', 'isbin': 0L}
+                    #...
                     print cbd
 
                 vsl = varnishapi.VarnishLog(['-c'])
