@@ -518,7 +518,7 @@ class VarnishLog(VarnishAPI):
         return(i)
     
 
-    def DispatchSingle(self,cb):
+    def __Dispatch(self,cb):
         i = self.__cbMain(cb)
         if i > -2:
             return i
@@ -535,9 +535,9 @@ class VarnishLog(VarnishAPI):
             self.error = "Log overrun"
         return i
         
-    def DispatchMulti(self,cb):
+    def Dispatch(self,cb):
         while 1:
-            i = self.DispatchSingle(cb)
+            i = self.__Dispatch(cb)
             if i==0:
                 return(i)
 
