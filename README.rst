@@ -104,7 +104,7 @@ VarnishStat.getStats
 Prototype
         ::
 
-                getStat()
+                getStats()
 
 Parameter
         ::

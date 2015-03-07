@@ -519,7 +519,7 @@ class VarnishLog(VarnishAPI):
         return(i)
     
 
-    def __Dispatch(self,cb,priv=None):
+    def Dispatch(self,cb,priv=None):
         i = self.__cbMain(cb,priv)
         if i > -2:
             return i
@@ -536,11 +536,6 @@ class VarnishLog(VarnishAPI):
             self.error = "Log overrun"
         return i
         
-    def Dispatch(self,cb,priv = None):
-        while 1:
-            i = self.__Dispatch(cb,priv)
-            if i==0:
-                return(i)
 
         
     def Fini(self):
@@ -563,10 +558,10 @@ class VarnishLog(VarnishAPI):
         return self.lib.VSLQ_Name2Grouping(arg, -1)
     
     def __callBack(self,vsl, pt, fo):
-        i = -1
+        idx = -1
         while 1:
-            i=i+1
-            t = pt[i]
+            idx=idx+1
+            t = pt[idx]
             if not bool(t):
                 break
             tra=t[0]
@@ -610,6 +605,5 @@ class VarnishLog(VarnishAPI):
                 cbd['isbin'] = self.VSL_tagflags[tag] & self.defi.SLT_F_BINARY
                 if self.__cb:
                     self.__cb(self,cbd,self.__priv)
-                #print "vxid:%d tag:%d type:%s data:%s (len=%d)" % (vxid,tag,type,data,length)
         return(0)
         
