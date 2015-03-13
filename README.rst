@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2015-03-07
-:Version: x.x-varnish40
+:Date: 2015-03-14
+:Version: 0.4-varnish40
 :Support Varnish Version: 4.0.x
 :Manual section: 3
 
@@ -288,7 +288,7 @@ Example
 HISTORY
 ===========
 
-Version x.x-varnish40: Support change to Varnish4
+Version 0.4-varnish40: Support change to Varnish4
 
 Version 0.3-varnish30: Support VSM_ReOpen
 
