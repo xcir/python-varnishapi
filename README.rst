@@ -22,9 +22,6 @@ DESCRIPTION
 ============
 Connect to libvarnish api by ctypes
 
-IN DEVELOPMENT.
-
-DON'T USE PRODUCTION.
 
 VSLUtil class
 ---------------------------------------
