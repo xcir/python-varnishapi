@@ -229,7 +229,7 @@ class VSLUtil:
         if   r == '':
             return ret
         elif r[-1:] == '.':
-            spl = data.split(':',1)
+            spl = data.split(': ',1)
             ret['key'] = r + spl[0]
             ret['val'] = spl[1]
         else:
