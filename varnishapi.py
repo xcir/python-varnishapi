@@ -220,11 +220,12 @@ class LIBVARNISHAPI13:
         
 class VSLUtil:
     def tag2Var(self, tag, data):
-        ret = {'key':'','val':''}
+        ret = {'key':'','val':'','vkey':''}
         if not self.__tags.has_key(tag):
             return ret
         
         r =  self.__tags[tag]
+        ret['vkey'] = r.split(' ',1)[-1].split('.',1)[0]
         if   r == '':
             return ret
         elif r[-1:] == '.':

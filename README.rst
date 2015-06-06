@@ -56,7 +56,7 @@ Example
 
                 vut = VSLUtil()
 
-                # output is {'val': ' example.net', 'key': 'resp.http.Host'}
+                # output is {'val': ' example.net', 'key': 'resp.http.Host', 'vkey': 'resp'}
                 print vut.tag2Var('RespHeader','Host: example.net')
 
 VSLUtil.tag2VarName

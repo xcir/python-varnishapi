@@ -219,16 +219,26 @@ class LIBVARNISHAPI13:
         #self.VSLQ_Dispatch.argtypes = (c_void_p, CFUNCTYPE ,c_void_p)
         
 class VSLUtil:
-    def tag2VarName(self, tag, data):
+    def tag2Var(self, tag, data):
+        ret = {'key':'','val':'','vkey':''}
         if not self.__tags.has_key(tag):
-            return ''
+            return ret
         
         r =  self.__tags[tag]
+        ret['vkey'] = r.split(' ',1)[-1].split('.',1)[0]
         if   r == '':
-            return ''
+            return ret
         elif r[-1:] == '.':
-          return r + data.split(':',1)[0]
-        return (r)
+            spl = data.split(':',1)
+            ret['key'] = r + spl[0]
+            ret['val'] = spl[1]
+        else:
+            ret['key'] = r
+            ret['val'] = data
+        return (ret)
+    
+    def tag2VarName(self, tag, data):
+        return self.tag2Var(tag, data)['key']
     
     __tags = {
         'Debug'          : '',
