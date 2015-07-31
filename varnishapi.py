@@ -338,13 +338,13 @@ class VarnishAPI:
         
     def ArgDefault(self, op, arg):
         if   op == "n":
-            #ƒCƒ“ƒXƒ^ƒ“ƒXŽw’è
+            #ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹æŒ‡å®š
             i = self.lib.VSM_n_Arg(self.vsm, arg)
             if i <= 0:
                 error = "%s" % self.lib.VSM_Error(self.vsm)
                 return(i)
         elif op == "N":
-            #VSMƒtƒ@ƒCƒ‹Žw’è
+            #VSMãƒ•ã‚¡ã‚¤ãƒ«æŒ‡å®š
             i = self.lib.VSM_N_Arg(self.vsm, arg)
             if i <= 0:
                 error = "%s" % self.lib.VSM_Error(self.vsm)
@@ -410,6 +410,11 @@ class VarnishStat(VarnishAPI):
         self.lib.VSC_Iter(self.vsm, None, VSC_iter_f(self.__getstat), None);
         return self.__buf
         
+    def Fini(self):
+        if self.vsm:
+            self.lib.VSM_Delete(self.vsm)
+            self.vsm = 0
+
 
 class VarnishLog(VarnishAPI):
     def __init__(self, opt = '', sopath = 'libvarnishapi.so.1'):
@@ -451,10 +456,10 @@ class VarnishLog(VarnishAPI):
             return(i)
             
         if   op == "d":
-            #æ“ª‚©‚ç
+            #å…ˆé ­ã‹ã‚‰
             self.d_opt = 1
         elif op == "g":
-            #ƒOƒ‹[ƒsƒ“ƒOŽw’è
+            #ã‚°ãƒ«ãƒ¼ãƒ”ãƒ³ã‚°æŒ‡å®š
             self.__g_arg =  self.__VSLQ_Name2Grouping(arg)
             if   self.__g_arg == -2:
                 error = "Ambiguous grouping type: %s" % (arg)
@@ -463,12 +468,12 @@ class VarnishLog(VarnishAPI):
                 error = "Unknown grouping type: %s" % (arg)
                 return(self.__g_arg)
         #elif op == "P":
-        #    #PIDŽw’è‚Í‘Î‰ž‚µ‚È‚¢
+        #    #PIDæŒ‡å®šã¯å¯¾å¿œã—ãªã„
         elif op == "q":
             #VSL-query
             self.__q_arg = arg
         elif op == "r":
-            #ƒoƒCƒiƒŠƒtƒ@ƒCƒ‹
+            #ãƒã‚¤ãƒŠãƒªãƒ•ã‚¡ã‚¤ãƒ«
             self.__r_arg = arg
         else:
             #default
