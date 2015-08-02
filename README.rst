@@ -128,6 +128,37 @@ Example
                 #set arg
                 vsc = VarnishStat(['-n', 'v2'])
 
+VarnishStat.Fini
+-----------------------
+
+Prototype
+        ::
+
+                Fini()
+
+Parameter
+        ::
+
+                VOID
+
+Return value
+        ::
+
+                VOID
+                
+
+Description
+        ::
+
+                finish
+Example
+        ::
+
+                vsc = VarnishStat()
+                ...
+                vsc.Fini()
+
+
 VarnishStat.getStats
 ---------------------
 
