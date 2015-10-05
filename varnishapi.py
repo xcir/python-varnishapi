@@ -366,14 +366,13 @@ class VarnishAPI:
 class VarnishStat(VarnishAPI):
     def __init__(self, opt='', sopath = 'libvarnishapi.so.1'):
         VarnishAPI.__init__(self,sopath)
-        
+        self.name = ''
         if len(opt)>0:
             self.__setArg(opt)
-        
         if self.lib.VSM_Open(self.vsm):
-            self.error = "Can't open VSM file (%s)" % self.lib.VSM_Error(self.vsm)
-            return(0)
-        self.name = self.lva.VSM_Name(self.vsm)
+            self.error = "Can't open VSM file (%s)" % self.lib.VSM_Error(self.vsm).rstrip()
+        else:
+            self.name = self.lva.VSM_Name(self.vsm)
         
     def __setArg(self,opt):
         opts, args = getopt.getopt(opt,"N:n:")
