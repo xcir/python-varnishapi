@@ -351,13 +351,13 @@ class VarnishAPI:
             #インスタンス指定
             i = self.lib.VSM_n_Arg(self.vsm, arg)
             if i <= 0:
-                error = "%s" % self.lib.VSM_Error(self.vsm)
+                error = "%s" % self.lib.VSM_Error(self.vsm).rstrip()
                 return(i)
         elif op == "N":
             #VSMファイル指定
             i = self.lib.VSM_N_Arg(self.vsm, arg)
             if i <= 0:
-                error = "%s" % self.lib.VSM_Error(self.vsm)
+                error = "%s" % self.lib.VSM_Error(self.vsm).rstrip()
                 return(i)
             self.d_opt = 1
         return(None)
@@ -497,7 +497,7 @@ class VarnishLog(VarnishAPI):
             c = self.lva.VSL_CursorFile(self.vsl, self.__r_arg, 0);
         else:
             if self.lib.VSM_Open(self.vsm):
-                self.error = "Can't open VSM file (%s)" % self.lib.VSM_Error(self.vsm)
+                self.error = "Can't open VSM file (%s)" % self.lib.VSM_Error(self.vsm).rstrip()
                 return(0)
             self.name = self.lva.VSM_Name(self.vsm)
 
