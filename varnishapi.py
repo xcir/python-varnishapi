@@ -370,7 +370,10 @@ class VarnishStat(VarnishAPI):
         if len(opt)>0:
             self.__setArg(opt)
         
-        self.lib.VSM_Open(self.vsm)
+        if self.lib.VSM_Open(self.vsm):
+            self.error = "Can't open VSM file (%s)" % self.lib.VSM_Error(self.vsm)
+            return(0)
+        self.name = self.lva.VSM_Name(self.vsm)
         
     def __setArg(self,opt):
         opts, args = getopt.getopt(opt,"N:n:")
