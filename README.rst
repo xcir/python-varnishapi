@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2015-08-02
-:Version: 0.5-varnish40
+:Date: 2015-10-05
+:Version: 0.6-varnish40
 :Support Varnish Version: 4.0.x
 :Manual section: 3
 
@@ -348,6 +348,8 @@ Example
 
 HISTORY
 ===========
+
+Version 0.6-varnish40: Fix -n/-N option doesn't work in VarnishStat(issue #15 thanks athoune)
 
 Version 0.5-varnish40: Add VSLUtil.tag2Var VarnishStat.Fini(p-r #10 thanks bryyyon)
 
