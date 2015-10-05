@@ -229,7 +229,7 @@ class VSLUtil:
         if   r == '':
             return ret
         elif r[-1:] == '.':
-            spl = data.split(':',1)
+            spl = data.split(': ',1)
             ret['key'] = r + spl[0]
             ret['val'] = spl[1]
         else:
@@ -366,22 +366,20 @@ class VarnishAPI:
 class VarnishStat(VarnishAPI):
     def __init__(self, opt='', sopath = 'libvarnishapi.so.1'):
         VarnishAPI.__init__(self,sopath)
-        self.lib.VSM_Open(self.vsm)
-
+        
         if len(opt)>0:
             self.__setArg(opt)
         
+        self.lib.VSM_Open(self.vsm)
+        
     def __setArg(self,opt):
-        opts, args = getopt.getopt(opt,"bcCdx:X:r:q:N:n:I:i:g:")
+        opts, args = getopt.getopt(opt,"N:n:")
         error = 0
         for o in opts:
             op  = o[0].lstrip('-')
             arg = o[1]
             self.__Arg(op,arg)
         
-        #Check
-        if self.__r_arg and self.vsm:
-            error = "Can't have both -n and -r options"
         
         if error:
             self.error = error
@@ -390,7 +388,7 @@ class VarnishStat(VarnishAPI):
 
     def __Arg(self, op, arg):
         #default
-        VarnishAPI.__Arg(op, arg)
+        i = VarnishAPI.ArgDefault(self,op, arg)
         if i < 0:
             return(i)
 
