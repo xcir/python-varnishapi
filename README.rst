@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2015-10-05
-:Version: 0.6-varnish40
+:Date: 2015-11-06
+:Version: 0.7-varnish40
 :Support Varnish Version: 4.0.x, 4.1.x
 :Manual section: 3
 
@@ -348,6 +348,8 @@ Example
 
 HISTORY
 ===========
+
+Version 0.7-varnish40: Support Varnish4.1 tags
 
 Version 0.6-varnish40: Fix -n/-N option doesn't work in VarnishStat(issue #15 thanks athoune)
 
