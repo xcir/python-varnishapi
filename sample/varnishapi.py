@@ -246,7 +246,7 @@ class VSLUtil:
         'CLI'            : '',
         'SessOpen'       : '',
         'SessClose'      : '',
-        'BackendOpen'    : '',
+        'BackendOpen'    : '', #Change key count at varnish41(4->6)
         'BackendReuse'   : '',
         'BackendClose'   : '',
         'HttpGarbage'    : '',
@@ -268,7 +268,7 @@ class VSLUtil:
         'ExpKill'        : '',
         'WorkThread'     : '',
         'ESI_xmlerror'   : '',
-        'Hash'           : '',
+        'Hash'           : '', #Change log data type(str->bin)
         'Backend_health' : '',
         'VCL_Log'        : '',
         'VCL_Error'      : '',
@@ -280,7 +280,7 @@ class VSLUtil:
         'Storage'        : '',
         'Timestamp'      : '',
         'ReqAcct'        : '',
-        'ESI_BodyBytes'  : '',
+        'ESI_BodyBytes'  : '', #Only Varnish40X
         'PipeAcct'       : '',
         'BereqAcct'      : '',
         'ReqMethod'      : 'req.method',
@@ -323,10 +323,14 @@ class VSLUtil:
         'ObjHeader'      : 'obj.http.',
         'ObjUnset'       : 'unset obj.http.',
         'ObjLost'        : '',
+        'Proxy'          : '', #Only Varnish41x
+        'ProxyGarbage'   : '', #Only Varnish41x
+        'VfpAcct'        : '', #Only Varnish41x
+        'Witness'        : '', #Only Varnish41x
     }
 
 class VarnishAPI:
-    def __init__(self, opt = '', sopath = 'libvarnishapi.so.1'):
+    def __init__(self, sopath = 'libvarnishapi.so.1'):
         self.lib     = cdll[sopath]
         self.lva     = LIBVARNISHAPI13(self.lib)
         self.defi    = VarnishAPIDefine40()

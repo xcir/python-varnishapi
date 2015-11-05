@@ -330,7 +330,7 @@ class VSLUtil:
     }
 
 class VarnishAPI:
-    def __init__(self, opt = '', sopath = 'libvarnishapi.so.1'):
+    def __init__(self, sopath = 'libvarnishapi.so.1'):
         self.lib     = cdll[sopath]
         self.lva     = LIBVARNISHAPI13(self.lib)
         self.defi    = VarnishAPIDefine40()

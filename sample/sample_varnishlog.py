@@ -31,6 +31,9 @@ class SampleVarnishLog:
 def main(smp):
 	try:
 		vap = varnishapi.VarnishLog(['-g','raw'])
+		if vap.error:
+			print vap.error
+			exit(1)
 		smp.execute(vap)
 	except KeyboardInterrupt:
 		vap.Fini()
