@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from ctypes import *
-import sys,getopt
+import sys,getopt,time
 ###########################################
 
 class VSC_level_desc(Structure):
@@ -526,6 +526,8 @@ class VarnishLog(VarnishAPI):
         self.__cb   = cb
         self.__priv = priv
         if not self.vslq:
+            #Reconnect VSM
+            time.sleep(0.1)
             if self.lib.VSM_Open(self.vsm):
                 self.lib.VSM_ResetError(self.vsm)
                 return(1)
@@ -534,7 +536,8 @@ class VarnishLog(VarnishAPI):
                 self.lib.VSM_ResetError(self.vsm)
                 self.lib.VSM_Close(self.vsm)
                 return(1)
-            self.vslq = self.lva.VSLQ_New(self.vsl, POINTER(c), self.__g_arg, self.__q_arg);
+            z = cast(c,c_void_p)
+            self.vslq = self.lva.VSLQ_New(self.vsl, z, self.__g_arg, self.__q_arg);
             self.error = 'Log reacquired'
         i = self.lib.VSLQ_Dispatch(self.vslq, VSLQ_dispatch_f(self.__callBack), None);
         return(i)
