@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # coding: utf-8
 import varnishapi,time,os,sys,syslog,traceback
 

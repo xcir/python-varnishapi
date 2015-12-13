@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2015-11-06
-:Version: 0.7-varnish40
+:Date: 2015-12-13
+:Version: 0.8-varnish40
 :Support Varnish Version: 4.0.x, 4.1.x
 :Manual section: 3
 
@@ -348,6 +348,8 @@ Example
 
 HISTORY
 ===========
+
+Version 0.8-varnish40: Fix Crash if log abandoned.
 
 Version 0.7-varnish40: Support Varnish4.1 tags
 
