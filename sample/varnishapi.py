@@ -1,5 +1,8 @@
 # coding: utf-8
 
+# https://github.com/xcir/python-varnishapi
+# v0.8-varnish40
+
 from ctypes import *
 import sys,getopt,time
 ###########################################
@@ -352,13 +355,13 @@ class VarnishAPI:
         
     def ArgDefault(self, op, arg):
         if   op == "n":
-            #インスタンス指定
+            # Set Varnish instance name.
             i = self.lib.VSM_n_Arg(self.vsm, arg)
             if i <= 0:
                 error = "%s" % self.lib.VSM_Error(self.vsm).rstrip()
                 return(i)
         elif op == "N":
-            #VSMファイル指定
+            # Set VSM file.
             i = self.lib.VSM_N_Arg(self.vsm, arg)
             if i <= 0:
                 error = "%s" % self.lib.VSM_Error(self.vsm).rstrip()
@@ -470,10 +473,10 @@ class VarnishLog(VarnishAPI):
             return(i)
             
         if   op == "d":
-            #先頭から
+            #Set log cursor at the head.
             self.d_opt = 1
         elif op == "g":
-            #グルーピング指定
+            #Specify the grouping.
             self.__g_arg =  self.__VSLQ_Name2Grouping(arg)
             if   self.__g_arg == -2:
                 error = "Ambiguous grouping type: %s" % (arg)
@@ -482,12 +485,12 @@ class VarnishLog(VarnishAPI):
                 error = "Unknown grouping type: %s" % (arg)
                 return(self.__g_arg)
         #elif op == "P":
-        #    #PID指定は対応しない
+        #    #Not support PID(-P) option.
         elif op == "q":
             #VSL-query
             self.__q_arg = arg
         elif op == "r":
-            #バイナリファイル
+            # Read log from the binary file.
             self.__r_arg = arg
         else:
             #default
