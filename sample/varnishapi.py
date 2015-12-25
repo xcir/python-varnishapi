@@ -1,5 +1,8 @@
 # coding: utf-8
 
+# https://github.com/xcir/python-varnishapi
+# v0.8-varnish40
+
 from ctypes import *
 import sys,getopt,time
 ###########################################
