@@ -243,6 +243,10 @@ class VSLUtil:
     def tag2VarName(self, tag, data):
         return self.tag2Var(tag, data)['key']
     
+    @classmethod
+    def tagExists(cls, tag):
+        return cls.__tags.has_key(tag)
+
     __tags = {
         'Debug'          : '',
         'Error'          : '',
