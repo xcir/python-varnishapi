@@ -33,10 +33,6 @@ class SampleVarnishLog:
 def main(smp):
 	try:
 		vap = varnishapi.VarnishLog(['-g','raw'])
-		print vap.VSL_tags
-		print vap.VSL_tagflags
-		print vap.VSLQ_grouping
-		exit(1)
 		if vap.error:
 			print vap.error
 			exit(1)
