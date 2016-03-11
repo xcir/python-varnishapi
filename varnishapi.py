@@ -343,9 +343,12 @@ class VarnishAPI:
         
         VSLTAGS           = c_char_p * 256
         self.VSL_tags     = []
+        self.VSL_tags_rev = {}
         tmp               = VSLTAGS.in_dll(self.lib, "VSL_tags")
         for i in range(0, 255):
             self.VSL_tags.append(tmp[i])
+            if tmp[i] is not None:
+                self.VSL_tags_rev[tmp[i]] = i
         
         VSLTAGFLAGS       = c_uint * 256
         self.VSL_tagflags = []
