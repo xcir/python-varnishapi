@@ -342,14 +342,22 @@ class VarnishAPI:
         self.d_opt = 0
         
         VSLTAGS           = c_char_p * 256
-        self.VSL_tags     = VSLTAGS.in_dll(self.lib, "VSL_tags")
+        self.VSL_tags     = []
+        tmp               = VSLTAGS.in_dll(self.lib, "VSL_tags")
+        for i in range(0, 255):
+            self.VSL_tags.append(tmp[i])
         
         VSLTAGFLAGS       = c_uint * 256
-        self.VSL_tagflags = VSLTAGFLAGS.in_dll(self.lib, "VSL_tagflags")
-        
+        self.VSL_tagflags = []
+        tmp               = VSLTAGFLAGS.in_dll(self.lib, "VSL_tagflags")
+        for i in range(0, 255):
+            self.VSL_tagflags.append(tmp[i])
         
         VSLQGROUPING       = c_char_p * 4
-        self.VSLQ_grouping = VSLQGROUPING.in_dll(self.lib, "VSLQ_grouping")
+        self.VSLQ_grouping = []
+        tmp                = VSLQGROUPING.in_dll(self.lib, "VSLQ_grouping")
+        for i in range(0, 3):
+            self.VSLQ_grouping.append(tmp[i])
         
         self.error   = ''
         
