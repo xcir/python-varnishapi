@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2015-12-13
-:Version: 0.8-varnish40
+:Date: 2016-03-12
+:Version: 0.9-varnish40
 :Support Varnish Version: 4.0.x, 4.1.x
 :Manual section: 3
 
@@ -307,25 +307,29 @@ Example
                         time.sleep(0.5)
                 vsl.Fini()
 
-VarnishLog.VSL_tags
------------------------
+
+VarnishLog.VSL_tags / VSL_tags_rev
+-----------------------------------
 
 Prototype
         ::
 
+                #This is list variable
+                VSL_tags[tag index]
                 #This is dictionary variable
-                VSL_tags[tag]
+                VSL_tags_rev[tag name]
 
 Return value
         ::
 
-                STRING tagname
+                STRING tagname (VSL_tags)
+                INT tagindex (VSL_tags_rev)
                 
 
 Description
         ::
 
-                Transcode tag index to tag text
+                Transcode tag index to tag text, or reverse
 
 Example
         ::
@@ -345,9 +349,49 @@ Example
                         time.sleep(0.5)
                 vsl.Fini()
 
+VarnishLog.VSL_tagflags
+--------------------------------
+
+Prototype
+        ::
+
+                #This is list variable
+                VSL_tagflags[tag index]
+
+Return value
+        ::
+
+                INT tagflags
+
+Description
+        ::
+
+                tag flags
+
+VarnishLog.VSLQ_grouping
+--------------------------------
+
+Prototype
+        ::
+
+                #This is list variable
+                VSLQ_grouping[tag index]
+
+Return value
+        ::
+
+                STRING VSLQ_grouping_name
+
+Description
+        ::
+
+                VSL Query grouping name
+
 
 HISTORY
 ===========
+
+Version 0.9-varnish40: Change VarnishLog.(VSL_tags|VSL_tagflags|VSLQ_grouping) from object to list. Add VarnishLog.VSL_tags_rev.
 
 Version 0.8-varnish40: Fix Crash if log abandoned.
 
