@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2016-03-12
-:Version: 0.9-varnish40
+:Date: 2016-03-16
+:Version: 0.10-varnish40
 :Support Varnish Version: 4.0.x, 4.1.x
 :Manual section: 3
 
@@ -390,6 +390,8 @@ Description
 
 HISTORY
 ===========
+
+Version 0.10-varnish40: Fix some error log did not output. (p-r #33 thanks ema)
 
 Version 0.9-varnish40: Change VarnishLog.(VSL_tags|VSL_tagflags|VSLQ_grouping) from object to list. Add VarnishLog.VSL_tags_rev.
 
