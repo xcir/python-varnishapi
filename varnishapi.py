@@ -1,11 +1,8 @@
 # coding: utf-8
 
 
-# Copyright (c) 2016 Shohei Tanaka(@xcir)
+# Copyright (c) 2013-2016 Shohei Tanaka(@xcir)
 # All rights reserved.
-#
-# https://github.com/xcir/python-varnishapi
-# v0.9-varnish40
 #
 #Redistribution and use in source and binary forms, with or without
 #modification, are permitted provided that the following conditions
@@ -28,6 +25,8 @@
 #OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #SUCH DAMAGE.
 
+# https://github.com/xcir/python-varnishapi
+# v0.9-varnish40
 
 from ctypes import *
 import getopt
