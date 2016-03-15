@@ -600,7 +600,6 @@ class VarnishLog(VarnishAPI):
 
         if not c:
             self.error = "Can't open log (%s)" % self.lva.VSL_Error(self.vsl)
-            print self.error
             return(0)
         # query
         z = cast(c, c_void_p)
