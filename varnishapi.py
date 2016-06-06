@@ -537,7 +537,7 @@ class VarnishLog(VarnishAPI):
         for o in opts:
             op = o[0].lstrip('-')
             arg = o[1]
-            self.__Arg(op, arg)
+            self.__Arg(op, arg.encode("ascii"))
 
         # Check
         if self.__r_arg and self.vsm:
@@ -577,7 +577,7 @@ class VarnishLog(VarnishAPI):
             # default
             i = self.__VSL_Arg(op, arg)
             if i < 0:
-                self.error = "%s" % self.lib.VSL_Error(self.vsl)
+                self.error = "%s" % self.lib.VSL_Error(self.vsl).decode("ascii")
             return(i)
 
     def __Setup(self):
@@ -586,7 +586,7 @@ class VarnishLog(VarnishAPI):
         else:
             if self.lib.VSM_Open(self.vsm):
                 self.error = "Can't open VSM file (%s)" % self.lib.VSM_Error(
-                    self.vsm).rstrip()
+                    self.vsm).decode("ascii").rstrip()
                 return(0)
             self.name = self.lva.VSM_Name(self.vsm)
 
@@ -599,14 +599,14 @@ class VarnishLog(VarnishAPI):
                 self.vsl, self.vsm, tail | self.defi.VSL_COPT_BATCH)
 
         if not c:
-            self.error = "Can't open log (%s)" % self.lva.VSL_Error(self.vsl)
+            self.error = "Can't open log (%s)" % self.lva.VSL_Error(self.vsl).decode("ascii")
             return(0)
         # query
         z = cast(c, c_void_p)
         self.vslq = self.lva.VSLQ_New(self.vsl, z, self.__g_arg, self.__q_arg)
         if not self.vslq:
             self.error = "Query expression error:\n%s" % self.lib.VSL_Error(
-                self.vsl)
+                self.vsl).decode("ascii")
             return(0)
 
         return(1)
@@ -618,13 +618,13 @@ class VarnishLog(VarnishAPI):
             # Reconnect VSM
             time.sleep(0.1)
             if self.lib.VSM_Open(self.vsm):
-                self.lib.VSM_ResetError(self.vsm)
+                self.lib.VSM_ResetError(self.vsm).decode("ascii")
                 return(1)
             c = self.lva.VSL_CursorVSM(
                 self.vsl, self.vsm,
                 self.defi.VSL_COPT_TAIL | self.defi.VSL_COPT_BATCH)
             if not c:
-                self.lib.VSM_ResetError(self.vsm)
+                self.lib.VSM_ResetError(self.vsm).decode("ascii")
                 self.lib.VSM_Close(self.vsm)
                 return(1)
             z = cast(c, c_void_p)
@@ -705,7 +705,6 @@ class VarnishLog(VarnishAPI):
                 # decode vxid type ...
                 length = c.rec.ptr[0] & 0xffff
                 cbd['length'] = length
-                cbd['data'] = string_at(c.rec.ptr, length + 8)[8:]
                 tag = c.rec.ptr[0] >> 24
                 cbd['tag'] = tag
                 if c.rec.ptr[1] & (1 << 30):
@@ -715,6 +714,11 @@ class VarnishLog(VarnishAPI):
                 else:
                     cbd['type'] = '-'
                 cbd['isbin'] = self.VSL_tagflags[tag] & self.defi.SLT_F_BINARY
+                if cbd['isbin'] == self.defi.SLT_F_BINARY:
+                  cbd['data'] = string_at(c.rec.ptr, length + 8)[8:]
+                else:
+                  cbd['data'] = string_at(c.rec.ptr, length + 8)[8:].decode("ascii")
+                
                 if self.__cb:
                     self.__cb(self, cbd, self.__priv)
         return(0)
