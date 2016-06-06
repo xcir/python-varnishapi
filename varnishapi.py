@@ -490,15 +490,15 @@ class VarnishStat(VarnishAPI):
         sec = pt[0].section
         key = ''
 
-        type = sec[0].fantom[0].type
-        ident = sec[0].fantom[0].ident
+        type = sec[0].fantom[0].type.decode("ascii")
+        ident = sec[0].fantom[0].ident.decode("ascii")
         if type != '':
             key += type + '.'
         if ident != '':
             key += ident + '.'
-        key += pt[0].desc[0].name
+        key += pt[0].desc[0].name.decode("ascii")
 
-        self.__buf[key] = {'val': val, 'desc': pt[0].desc[0].sdesc}
+        self.__buf[key] = {'val': val, 'desc': pt[0].desc[0].sdesc.decode("ascii")}
 
         return(0)
 
