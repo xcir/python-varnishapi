@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # coding: utf-8
-import varnishapi,time,os,sys,syslog,traceback
+import time,os,sys,syslog,traceback,varnishapi
 
 class SampleVarnishLog:
 	def execute(self,vap):
