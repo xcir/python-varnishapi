@@ -19,6 +19,12 @@ For Varnish3.0.x
 See this link.
 https://github.com/xcir/python-varnishapi/tree/varnish30
 
+
+Installation
+============
+pip3 install -e .
+
+
 DESCRIPTION
 ============
 Connect to libvarnish api by ctypes
