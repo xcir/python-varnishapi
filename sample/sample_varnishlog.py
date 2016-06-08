@@ -3,9 +3,6 @@
 # coding: utf-8
 import varnishapi,time,os,sys,syslog,traceback
 
-
-
-
 class SampleVarnishLog:
 	def execute(self,vap):
 		#connect varnishapi
@@ -28,13 +25,13 @@ class SampleVarnishLog:
 		t_tag = vap.VSL_tags[tag]
 		var   = vap.vut.tag2VarName(t_tag,data)
 	    
-		print "level:%d vxid:%d vxid_parent:%d tag:%s var:%s type:%s data:%s (isbin=%d,len=%d)" % (level,vxid,vxid_parent,t_tag,var,type,data,isbin,length)
+		print("level:%d vxid:%d vxid_parent:%d tag:%s var:%s type:%s data:%s (isbin=%d,len=%d)" % (level,vxid,vxid_parent,t_tag,var,type,data,isbin,length))
 
 def main(smp):
 	try:
 		vap = varnishapi.VarnishLog(['-g','raw'])
 		if vap.error:
-			print vap.error
+			print(vap.error)
 			exit(1)
 		smp.execute(vap)
 	except KeyboardInterrupt:
