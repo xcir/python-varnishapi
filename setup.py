@@ -26,7 +26,7 @@ setup(
     install_requires=[],
     keywords='varnish,varnishlog,varnishstat',
     platforms=['any'],
-    license='FreeBSD',
+    license='BSD',
     packages=find_packages('src'),
     include_package_data=True,
     package_dir={'': 'src'},
@@ -35,7 +35,7 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: Apache Software License',
+        'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Operating System :: POSIX',
         'Operating System :: MacOS :: MacOS X',
