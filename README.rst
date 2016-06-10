@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2016-06-06
-:Version: 0.11-varnish40
+:Date: 2016-06-10
+:Version: 40.12
 :Support Varnish Version: 4.0.x, 4.1.x
 :Check Python Version: 2.7.x, 3.4.x
 :Manual section: 3
@@ -24,6 +24,12 @@ Installation
 ============
 pip3 install -e .
 
+
+Versioning
+============
+[varnish-version].[library-version]
+
+40.12 is v12 for Varnish4.x
 
 DESCRIPTION
 ============
@@ -397,6 +403,7 @@ Description
 
 HISTORY
 ===========
+Version 40.12: Support pip.(p-r #39 thanks ziollek)
 
 Version 0.11-varnish40: Initial support for Python3. Feedback is welcome.
 

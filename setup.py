@@ -14,7 +14,7 @@ with open(os.path.join(current_dir, 'README.rst')) as readme_file:
 
 sys.path.insert(0, current_dir + os.sep + 'src')
 
-release = "0.1.0-initial"
+release = "40.12"
 
 setup(
     name='varnishapi',
