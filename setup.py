@@ -33,7 +33,7 @@ setup(
     zipfile=None,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: System Administrators',
+        'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Operating System :: POSIX',
