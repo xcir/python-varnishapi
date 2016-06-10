@@ -6,8 +6,6 @@ from distutils.core import setup
 
 from setuptools import find_packages
 
-assert sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (3, 4), "Python 2.7.x or 3.4.x is required."
-
 current_dir = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(current_dir, 'README.rst')) as readme_file:
     long_description = readme_file.read()
