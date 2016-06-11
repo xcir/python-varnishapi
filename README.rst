@@ -22,8 +22,7 @@ https://github.com/xcir/python-varnishapi/tree/varnish30
 
 Installation
 ============
-pip3 install -e .
-
+sudo python setup.py install
 
 Versioning
 ============
