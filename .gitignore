@@ -1,5 +1,5 @@
 .idea
 *.pyc
 __pycache__/
-varnishapi/varnishapi.egg-info
+src/varnishapi.egg-info
 

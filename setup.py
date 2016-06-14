@@ -4,6 +4,8 @@ import os
 import sys
 from distutils.core import setup
 
+from setuptools import find_packages
+
 assert sys.version_info[:2] == (2, 7) or sys.version_info[:2] == (3, 4), "Python 2.7.x or 3.4.x is required."
 
 current_dir = os.path.abspath(os.path.dirname(__file__))
@@ -25,9 +27,10 @@ setup(
     keywords='varnish,varnishlog,varnishstat',
     platforms=['any'],
     license='FreeBSD',
-    packages=['varnishapi'],
+    packages=find_packages('src'),
     include_package_data=True,
-    package_dir={'varnishapi': 'varnishapi'},
+    package_dir={'': 'src'},
+    py_modules = ['varnishapi'],
     zip_safe=False,
     zipfile=None,
     classifiers=[
