@@ -29,8 +29,7 @@ setup(
     license='FreeBSD',
     packages=find_packages('src'),
     include_package_data=True,
-    package_dir={'': 'src'},
-    py_modules = ['varnishapi'],
+    package_dir={'varnishapi': 'varnishapi'},
     zip_safe=False,
     zipfile=None,
     classifiers=[
