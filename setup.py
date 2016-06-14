@@ -25,7 +25,7 @@ setup(
     keywords='varnish,varnishlog,varnishstat',
     platforms=['any'],
     license='FreeBSD',
-    packages=['varnishapi', 'varnishapi.api'],
+    packages=['varnishapi'],
     include_package_data=True,
     package_dir={'varnishapi': 'varnishapi'},
     zip_safe=False,
