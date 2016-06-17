@@ -30,8 +30,6 @@ setup(
     include_package_data=True,
     package_dir={'': 'src'},
     py_modules = ['varnishapi'],
-    zip_safe=False,
-    zipfile=None,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
