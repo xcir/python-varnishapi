@@ -316,6 +316,7 @@ class VSLUtil:
         'SessOpen': '',
         'SessClose': '',
         'BackendOpen': '',  # Change key count at varnish41(4->6)
+        'BackendStart': '', # 4.1.3~
         'BackendReuse': '',
         'BackendClose': '',
         'HttpGarbage': '',
