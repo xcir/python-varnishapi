@@ -300,7 +300,9 @@ class VSLUtil:
         elif r[-1:] == '.':
             spl = data.split(': ', 1)
             ret['key'] = r + spl[0]
-            ret['val'] = spl[1]
+            ret['val'] = ''
+            if len(spl) > 1:
+                ret['val'] = spl[1]
         else:
             ret['key'] = r
             ret['val'] = data
