@@ -721,7 +721,7 @@ class VarnishLog(VarnishAPI):
                 if cbd['isbin'] == self.defi.SLT_F_BINARY:
                   cbd['data'] = string_at(c.rec.ptr, length + 8)[8:]
                 else:
-                  cbd['data'] = string_at(c.rec.ptr, length + 8)[8:].decode("ascii")
+                  cbd['data'] = string_at(c.rec.ptr, length + 8)[8:].decode("utf-8")
                 
                 if self.__cb:
                     self.__cb(self, cbd, self.__priv)
