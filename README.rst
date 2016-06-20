@@ -219,13 +219,14 @@ VarnishLog.__init__
 Prototype
         ::
 
-                VarnishLog(opt = '', sopath = 'libvarnishapi.so.1')
+                VarnishLog(opt = '', sopath = 'libvarnishapi.so.1', dataDecode = 1)
 
 Parameter
         ::
 
                 LIST   arg [OPTION]
                 STRING libvarnishapi path [OPTION]
+                INT Using decode at the callback [OPTION]
 
 Return value
         ::

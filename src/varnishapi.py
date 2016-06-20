@@ -520,7 +520,7 @@ class VarnishStat(VarnishAPI):
 
 class VarnishLog(VarnishAPI):
 
-    def __init__(self, opt='', sopath='libvarnishapi.so.1'):
+    def __init__(self, opt='', sopath='libvarnishapi.so.1', dataDecode=1):
         VarnishAPI.__init__(self, sopath)
 
         self.vut = VSLUtil()
@@ -530,6 +530,7 @@ class VarnishLog(VarnishAPI):
         self.__q_arg = None
         self.__r_arg = 0
         self.name = ''
+        self.dataDecode = dataDecode
 
         if len(opt) > 0:
             self.__setArg(opt)
@@ -719,7 +720,7 @@ class VarnishLog(VarnishAPI):
                 else:
                     cbd['type'] = '-'
                 cbd['isbin'] = self.VSL_tagflags[tag] & self.defi.SLT_F_BINARY
-                if cbd['isbin'] == self.defi.SLT_F_BINARY:
+                if cbd['isbin'] == self.defi.SLT_F_BINARY or not self.dataDecode:
                   cbd['data'] = string_at(c.rec.ptr, length + 8)[8:]
                 else:
                   cbd['data'] = string_at(c.rec.ptr, length + 8)[8:].decode("utf8")
