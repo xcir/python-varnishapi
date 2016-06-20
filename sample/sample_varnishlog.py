@@ -29,7 +29,9 @@ class SampleVarnishLog:
 
 def main(smp):
 	try:
-		vap = varnishapi.VarnishLog(['-g','raw'])
+		arg          = {}
+		arg["opt"]   = ['-g','raw']
+		vap = varnishapi.VarnishLog(**arg)
 		if vap.error:
 			print(vap.error)
 			exit(1)
