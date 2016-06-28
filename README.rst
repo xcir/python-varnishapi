@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2016-06-21
-:Version: 40.15
+:Date: 2016-06-28
+:Version: 40.16
 :Support Varnish Version: 4.0.x, 4.1.x
 :Check Python Version: 2.7.x, 3.4.x
 :Manual section: 3
@@ -403,6 +403,8 @@ Description
 
 HISTORY
 ===========
+Version 40.16: Change the decode error handler from "strict" to "replace".(p-r #51 thanks szymi-)
+
 Version 40.15: Fix Crash.
 
 Version 40.14: Fix decode issue.(via vsltrans p-r #25. thanks szymi-) Add dataDecode option in VarnishLog.__init__.
