@@ -408,7 +408,7 @@ class VarnishAPI:
         self.lib = cdll[sopath]
         self.lva = LIBVARNISHAPI13(self.lib)
         self.defi = VarnishAPIDefine40()
-        self.__cb = None
+        self._cb = None
         self.vsm = self.lib.VSM_New()
         self.d_opt = 0
 
@@ -486,7 +486,7 @@ class VarnishStat(VarnishAPI):
         if i < 0:
             return(i)
 
-    def __getstat(self, priv, pt):
+    def _getstat(self, priv, pt):
 
         if not bool(pt):
             return(0)
@@ -503,14 +503,14 @@ class VarnishStat(VarnishAPI):
             key += ident + '.'
         key += pt[0].desc[0].name.decode("utf8", "replace")
 
-        self.__buf[key] = {'val': val, 'desc': pt[0].desc[0].sdesc.decode("utf8", "replace")}
+        self._buf[key] = {'val': val, 'desc': pt[0].desc[0].sdesc.decode("utf8", "replace")}
 
         return(0)
 
     def getStats(self):
-        self.__buf = {}
-        self.lib.VSC_Iter(self.vsm, None, VSC_iter_f(self.__getstat), None)
-        return self.__buf
+        self._buf = {}
+        self.lib.VSC_Iter(self.vsm, None, VSC_iter_f(self._getstat), None)
+        return self._buf
 
     def Fini(self):
         if self.vsm:
@@ -618,8 +618,8 @@ class VarnishLog(VarnishAPI):
         return(1)
 
     def __cbMain(self, cb, priv=None):
-        self.__cb = cb
-        self.__priv = priv
+        self._cb = cb
+        self._priv = priv
         if not self.vslq:
             # Reconnect VSM
             time.sleep(0.1)
@@ -638,7 +638,7 @@ class VarnishLog(VarnishAPI):
                 self.vsl, z, self.__g_arg, self.__q_arg)
             self.error = 'Log reacquired'
         i = self.lib.VSLQ_Dispatch(
-            self.vslq, VSLQ_dispatch_f(self.__callBack), None)
+            self.vslq, VSLQ_dispatch_f(self._callBack), None)
         return(i)
 
     def Dispatch(self, cb, priv=None):
@@ -648,7 +648,7 @@ class VarnishLog(VarnishAPI):
         if not self.vsm:
             return i
 
-        self.lib.VSLQ_Flush(self.vslq, VSLQ_dispatch_f(self.__callBack), None)
+        self.lib.VSLQ_Flush(self.vslq, VSLQ_dispatch_f(self._callBack), None)
         self.lva.VSLQ_Delete(byref(cast(self.vslq, c_void_p)))
         self.vslq = None
         if i == -2:
@@ -675,7 +675,7 @@ class VarnishLog(VarnishAPI):
     def __VSLQ_Name2Grouping(self, arg):
         return self.lib.VSLQ_Name2Grouping(arg, -1)
 
-    def __callBack(self, vsl, pt, fo):
+    def _callBack(self, vsl, pt, fo):
         idx = -1
         while 1:
             idx += 1
@@ -725,6 +725,6 @@ class VarnishLog(VarnishAPI):
                 else:
                   cbd['data'] = string_at(c.rec.ptr, length + 8)[8:].decode("utf8", "replace")
                 
-                if self.__cb:
-                    self.__cb(self, cbd, self.__priv)
+                if self._cb:
+                    self._cb(self, cbd, self._priv)
         return(0)
