@@ -260,13 +260,34 @@ class LIBVARNISHAPI13:
 
     def __init__(self, lib):
         self.VSL_CursorFile = lib.VSL_CursorFile
-        self.VSL_CursorFile.restype = c_void_p
+        self.VSL_CursorFile.restype = POINTER(VSL_cursor)
+        self.VSL_CursorFile.argtypes = [c_void_p, c_char_p, c_uint]
 
         self.VSL_CursorVSM = lib.VSL_CursorVSM
-        self.VSL_CursorVSM.restype = c_void_p
+        self.VSL_CursorVSM.restype = POINTER(VSL_cursor)
+        self.VSL_CursorVSM.argtypes = [c_void_p, c_void_p, c_uint]
+
+        self.VSL_Next = lib.VSL_Next
+        self.VSL_Next.restype = c_int
+        self.VSL_Next.argtypes = [POINTER(VSL_cursor)]
+
+        self.VSL_Match = lib.VSL_Match
+        self.VSL_Match.restype = c_int
+        self.VSL_Match.argtypes = [c_void_p, POINTER(VSL_cursor)]
 
         self.VSL_Error = lib.VSL_Error
         self.VSL_Error.restype = c_char_p
+        self.VSL_Error.argtypes = [c_void_p]
+
+        self.VSL_New = lib.VSL_New
+        self.VSL_New.restype = c_void_p
+
+        self.VSL_Delete = lib.VSL_Delete
+        self.VSL_Delete.argtypes = [c_void_p]
+
+        self.VSL_Arg = lib.VSL_Arg
+        self.VSL_Arg.restype = c_int
+        self.VSL_Arg.argtypes = [c_void_p, c_int, c_char_p]
 
         self.VSM_Error = lib.VSM_Error
         self.VSM_Error.restype = c_char_p
@@ -299,18 +320,21 @@ class LIBVARNISHAPI13:
 
         self.VSC_Iter = lib.VSC_Iter
         self.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f, c_void_p]
-        
+
         self.VSLQ_New = lib.VSLQ_New
         self.VSLQ_New.restype = c_void_p
-        self.VSLQ_New.argtypes = [c_void_p, POINTER(c_void_p), c_int, c_char_p]
+        self.VSLQ_New.argtypes = [c_void_p, POINTER(POINTER(VSL_cursor)), c_int, c_char_p]
 
         self.VSLQ_Delete = lib.VSLQ_Delete
         self.VSLQ_Delete.argtypes = [POINTER(c_void_p)]
 
-        # self.VSLQ_Dispatch          = lib.VSLQ_Dispatch
-        # self.VSLQ_Dispatch.restype  = c_int
-        # self.VSLQ_Dispatch.argtypes = (c_void_p, CFUNCTYPE ,c_void_p)
+        self.VSLQ_Flush = lib.VSLQ_Flush
+        self.VSLQ_Flush.restype = c_int
+        self.VSLQ_Flush.argtypes = [c_void_p, VSLQ_dispatch_f, c_void_p]
 
+        self.VSLQ_Dispatch = lib.VSLQ_Dispatch
+        self.VSLQ_Dispatch.restype = c_int
+        self.VSLQ_Dispatch.argtypes = [c_void_p, VSLQ_dispatch_f, c_void_p]
 
 class VSLUtil:
 
@@ -436,7 +460,6 @@ class VarnishAPI:
         self.defi = VarnishAPIDefine40()
         self._cb = None
         self.vsm = self.lva.VSM_New()
-        print "vsm", self.vsm
         self.d_opt = 0
 
         VSLTAGS = c_char_p * 256
@@ -551,7 +574,7 @@ class VarnishLog(VarnishAPI):
         VarnishAPI.__init__(self, sopath)
 
         self.vut = VSLUtil()
-        self.vsl = self.lib.VSL_New()
+        self.vsl = self.lva.VSL_New()
         self.vslq = None
         self.__g_arg = 0
         self.__q_arg = None
@@ -610,7 +633,7 @@ class VarnishLog(VarnishAPI):
             # default
             i = self.__VSL_Arg(op, arg)
             if i < 0:
-                self.error = "%s" % self.lib.VSL_Error(self.vsl).decode("utf8", "replace")
+                self.error = "%s" % self.lva.VSL_Error(self.vsl).decode("utf8", "replace")
             return(i)
 
     def __Setup(self):
@@ -635,10 +658,9 @@ class VarnishLog(VarnishAPI):
             self.error = "Can't open log (%s)" % self.lva.VSL_Error(self.vsl).decode("utf8", "replace")
             return(0)
         # query
-        z = cast(c, c_void_p)
-        self.vslq = self.lva.VSLQ_New(self.vsl, z, self.__g_arg, self.__q_arg)
+        self.vslq = self.lva.VSLQ_New(self.vsl, c, self.__g_arg, self.__q_arg)
         if not self.vslq:
-            self.error = "Query expression error:\n%s" % self.lib.VSL_Error(
+            self.error = "Query expression error:\n%s" % self.lva.VSL_Error(
                 self.vsl).decode("utf8", "replace")
             return(0)
 
@@ -660,11 +682,10 @@ class VarnishLog(VarnishAPI):
                 self.lva.VSM_ResetError(self.vsm)
                 self.lva.VSM_Close(self.vsm)
                 return(1)
-            z = cast(c, c_void_p)
             self.vslq = self.lva.VSLQ_New(
-                self.vsl, z, self.__g_arg, self.__q_arg)
+                self.vsl, c, self.__g_arg, self.__q_arg)
             self.error = 'Log reacquired'
-        i = self.lib.VSLQ_Dispatch(
+        i = self.lva.VSLQ_Dispatch(
             self.vslq, VSLQ_dispatch_f(self._callBack), None)
         return(i)
 
@@ -675,7 +696,7 @@ class VarnishLog(VarnishAPI):
         if not self.vsm:
             return i
 
-        self.lib.VSLQ_Flush(self.vslq, VSLQ_dispatch_f(self._callBack), None)
+        self.lva.VSLQ_Flush(self.vslq, VSLQ_dispatch_f(self._callBack), None)
         self.lva.VSLQ_Delete(byref(cast(self.vslq, c_void_p)))
         self.vslq = None
         if i == -2:
@@ -690,14 +711,14 @@ class VarnishLog(VarnishAPI):
             self.lva.VSLQ_Delete(byref(cast(self.vslq, c_void_p)))
             self.vslq = 0
         if self.vsl:
-            self.lib.VSL_Delete(self.vsl)
+            self.lva.VSL_Delete(self.vsl)
             self.vsl = 0
         if self.vsm:
             self.lva.VSM_Delete(self.vsm)
             self.vsm = 0
 
     def __VSL_Arg(self, opt, arg='\0'):
-        return self.lib.VSL_Arg(self.vsl, ord(opt), arg)
+        return self.lva.VSL_Arg(self.vsl, ord(opt), arg)
 
     def __VSLQ_Name2Grouping(self, arg):
         return self.lib.VSLQ_Name2Grouping(arg, -1)
@@ -727,12 +748,12 @@ class VarnishLog(VarnishAPI):
                     continue
 
             while 1:
-                i = self.lib.VSL_Next(tra.c)
+                i = self.lva.VSL_Next(tra.c)
                 if i < 0:
                     return (i)
                 if i == 0:
                     break
-                if not self.lib.VSL_Match(self.vsl, tra.c):
+                if not self.lva.VSL_Match(self.vsl, tra.c):
                     continue
 
                 # decode vxid type ...
