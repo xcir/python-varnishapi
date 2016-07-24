@@ -328,6 +328,10 @@ class LIBVARNISHAPI13:
         self.VSLQ_Delete = lib.VSLQ_Delete
         self.VSLQ_Delete.argtypes = [POINTER(c_void_p)]
 
+        self.VSLQ_Name2Grouping = lib.VSLQ_Name2Grouping
+        self.VSLQ_Name2Grouping.restype = c_int
+        self.VSLQ_Name2Grouping.argtypes = [c_char_p, c_int]
+
         self.VSLQ_Flush = lib.VSLQ_Flush
         self.VSLQ_Flush.restype = c_int
         self.VSLQ_Flush.argtypes = [c_void_p, VSLQ_dispatch_f, c_void_p]
@@ -722,7 +726,7 @@ class VarnishLog(VarnishAPI):
         return self.lva.VSL_Arg(self.vsl, ord(opt), arg)
 
     def __VSLQ_Name2Grouping(self, arg):
-        return self.lib.VSLQ_Name2Grouping(arg, -1)
+        return self.lva.VSLQ_Name2Grouping(arg, -1)
 
     def _callBack(self, vsl, pt, fo):
         idx = -1
