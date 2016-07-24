@@ -470,8 +470,9 @@ class VarnishAPI:
             if tmp[i] is None:
                 self.VSL_tags.append(None)
             else:
-                self.VSL_tags.append(tmp[i].decode("utf8", "replace"))
-                self.VSL_tags_rev[tmp[i]] = i
+                key = tmp[i].decode("utf8", "replace")
+                self.VSL_tags.append(key)
+                self.VSL_tags_rev[key] = i
 
         VSLTAGFLAGS = c_uint * 256
         self.VSL_tagflags = []
