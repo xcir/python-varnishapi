@@ -340,6 +340,11 @@ class LIBVARNISHAPI13:
         self.VSLQ_Dispatch.restype = c_int
         self.VSLQ_Dispatch.argtypes = [c_void_p, VSLQ_dispatch_f, c_void_p]
 
+        self.VSL_Name2Tag = lib.VSL_Name2Tag
+        self.VSL_Name2Tag.restype = c_int
+        self.VSL_Name2Tag.argtypes = [c_char_p, c_int]
+
+
 class VSLUtil:
 
     def tag2Var(self, tag, data):
