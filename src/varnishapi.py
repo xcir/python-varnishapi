@@ -488,6 +488,18 @@ class VarnishAPI:
 
         self.error = ''
 
+    def VSL_TAG(self, ptr):
+        tag = ptr[0] >> 24
+        return tag
+
+    def VSL_DATA(self, ptr, isbin=False):
+        length = ptr[0] & 0xffff
+        if isbin:
+            data = string_at(ptr, length + 8)[8:]
+        else:
+            data = string_at(ptr, length + 8)[8:-1].decode("utf8", "replace")
+        return data
+
     def ArgDefault(self, op, arg):
         if op == "n":
             # Set Varnish instance name.
@@ -571,7 +583,7 @@ class VarnishStat(VarnishAPI):
 
 class VarnishLog(VarnishAPI):
 
-    def __init__(self, opt='', sopath='libvarnishapi.so.1', dataDecode=1):
+    def __init__(self, opt='', sopath='libvarnishapi.so.1', dataDecode=True):
         VarnishAPI.__init__(self, sopath)
 
         self.vut = VSLUtil()
@@ -732,7 +744,6 @@ class VarnishLog(VarnishAPI):
             if not bool(t):
                 break
             tra = t[0]
-            c = tra.c[0]
             cbd = {
                 'level': tra.level,
                 'vxid': tra.vxid,
@@ -758,22 +769,19 @@ class VarnishLog(VarnishAPI):
                     continue
 
                 # decode vxid type ...
-                length = c.rec.ptr[0] & 0xffff
-                cbd['length'] = length
-                tag = c.rec.ptr[0] >> 24
-                cbd['tag'] = tag
-                if c.rec.ptr[1] & (1 << 30):
+                ptr = tra.c[0].rec.ptr
+                cbd['length'] = ptr[0] & 0xffff
+                cbd['tag'] = self.VSL_TAG(ptr)
+                if ptr[1] & (1 << 30):
                     cbd['type'] = 'c'
-                elif c.rec.ptr[1] & (1 << 31):
+                elif ptr[1] & (1 << 31):
                     cbd['type'] = 'b'
                 else:
                     cbd['type'] = '-'
-                cbd['isbin'] = self.VSL_tagflags[tag] & self.defi.SLT_F_BINARY
-                if cbd['isbin'] == self.defi.SLT_F_BINARY or not self.dataDecode:
-                  cbd['data'] = string_at(c.rec.ptr, length + 8)[8:]
-                else:
-                  cbd['data'] = string_at(c.rec.ptr, length + 8)[8:].decode("utf8", "replace")
-                
+                cbd['isbin'] = self.VSL_tagflags[cbd['tag']] & self.defi.SLT_F_BINARY
+                isbin = cbd['isbin'] == self.defi.SLT_F_BINARY or not self.dataDecode
+                cbd['data'] = self.VSL_DATA(ptr, isbin)
+
                 if self._cb:
                     self._cb(self, cbd, self._priv)
         return(0)
