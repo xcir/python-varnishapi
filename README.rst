@@ -403,7 +403,7 @@ Description
 
 HISTORY
 ===========
-Version 40.17: Add VSL_TAG, VSL_DATA.(p-r #56,57,58 thanks ehocdet)
+Version 40.17: Add VSL_TAG, VSL_DATA. Rename class from LIBVARNISHAPI13 to LIBVARNISHAPI.(p-r #56,57,58 thanks ehocdet)
 
 Version 40.16: Change the decode error handler from "strict" to "replace".(p-r #51 thanks szymi-)
 
