@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2016-06-28
-:Version: 40.16
+:Date: 2016-09-14
+:Version: 40.17
 :Support Varnish Version: 4.0.x, 4.1.x
 :Check Python Version: 2.7.x, 3.4.x
 :Manual section: 3
@@ -403,6 +403,8 @@ Description
 
 HISTORY
 ===========
+Version 40.17: Add VSL_TAG, VSL_DATA.(p-r #56,57,58 thanks ehocdet)
+
 Version 40.16: Change the decode error handler from "strict" to "replace".(p-r #51 thanks szymi-)
 
 Version 40.15: Fix Crash.
