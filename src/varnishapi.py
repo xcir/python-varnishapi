@@ -26,7 +26,7 @@
 # SUCH DAMAGE.
 
 # https://github.com/xcir/python-varnishapi
-# v40.17
+# v50.18
 
 from ctypes import *
 import getopt
@@ -433,7 +433,36 @@ class LIBVARNISHAPI:
         #VNUM;
         #VSLQ_SetCursor;
         #VSM_IsOpen;
-        if hasattr(lib, "VSM_IsOpen"):
+
+        #LIBVARNISHAPI_1.5
+        #VUT_Error;
+        #VUT_g_Arg;
+        #VUT_Arg;
+        #VUT_Setup;
+        #VUT_Init;
+        #VUT_Fini;
+        #VUT_Main;
+        #VUT;
+        #VTIM_mono;
+        #VTIM_real;
+        #VTIM_sleep;
+        #VSB_new;
+        #VSB_destroy;
+        #VSB_error;
+        #VSB_cat;
+        #VSB_putc;
+        #VSB_printf;
+        #VSB_clear;
+        #VSB_finish;
+        #VSB_len;
+        #VSB_data;
+        #VAS_Fail;
+        #VCS_Message;
+
+
+        if hasattr(lib, "VUT_Init"):
+            self.apiversion = 1.5
+        elif hasattr(lib, "VSM_IsOpen"):
             self.apiversion = 1.4
         else:
             self.apiversion = 1.3
@@ -552,6 +581,10 @@ class VSLUtil:
         'ProxyGarbage': '',  # Only Varnish41x
         'VfpAcct':      '',  # Only Varnish41x
         'Witness':      '',  # Only Varnish41x
+        'H2RxHdr':   '',  # Only Varnish50x
+        'H2RxBody':  '',  # Only Varnish50x
+        'H2TxHdr':   '',  # Only Varnish50x
+        'H2TxBody':  '',  # Only Varnish50x
     }
 
 
