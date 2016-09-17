@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2016-09-14
-:Version: 50.xx
+:Date: 2016-09-18
+:Version: 50.18
 :Support Varnish Version: 4.0.x, 4.1.x 5.0.x
 :Check Python Version: 2.7.x, 3.4.x
 :Manual section: 3
@@ -28,7 +28,7 @@ Versioning
 ============
 [varnish-version].[library-version]
 
-40.12 is v12 for Varnish4.x
+50.18 is v18 for Varnish5.0.x
 
 DESCRIPTION
 ============
@@ -403,6 +403,8 @@ Description
 
 HISTORY
 ===========
+Version 50.18: Support Varnish5.0 tags.
+
 Version 40.17: Add VSL_TAG, VSL_DATA. Rename class from LIBVARNISHAPI13 to LIBVARNISHAPI.(p-r #56,57,58 thanks ehocdet)
 
 Version 40.16: Change the decode error handler from "strict" to "replace".(p-r #51 thanks szymi-)
