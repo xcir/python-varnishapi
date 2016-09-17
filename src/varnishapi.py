@@ -581,6 +581,10 @@ class VSLUtil:
         'ProxyGarbage': '',  # Only Varnish41x
         'VfpAcct':      '',  # Only Varnish41x
         'Witness':      '',  # Only Varnish41x
+        'H2RxHdr':   '',  # Only Varnish50x
+        'H2RxBody':  '',  # Only Varnish50x
+        'H2TxHdr':   '',  # Only Varnish50x
+        'H2TxBody':  '',  # Only Varnish50x
     }
 
 
