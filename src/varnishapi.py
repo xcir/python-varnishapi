@@ -887,13 +887,6 @@ class VarnishLog(VarnishAPI):
                 'reason': tra.reason,
             }
 
-            if vsl[0].c_opt or vsl[0].b_opt:
-                if tra.type == self.defi.VSL_t_req and not vsl[0].c_opt:
-                    continue
-                elif tra.type == self.defi.VSL_t_bereq and not vsl[0].b_opt:
-                    continue
-                elif tra.type != self.defi.VSL_t_raw:
-                    continue
 
             while 1:
                 i = self.lva.VSL_Next(tra.c)
