@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2016-09-18
-:Version: 50.18
+:Date: 2016-11-08
+:Version: 50.19
 :Support Varnish Version: 4.0.x, 4.1.x 5.0.x
 :Check Python Version: 2.7.x, 3.4.x
 :Manual section: 3
@@ -403,6 +403,8 @@ Description
 
 HISTORY
 ===========
+Version 50.19: Fix -c -b option issue.(issue #65 thanks ema)
+
 Version 50.18: Support Varnish5.0 tags.
 
 Version 40.17: Add VSL_TAG, VSL_DATA. Rename class from LIBVARNISHAPI13 to LIBVARNISHAPI.(p-r #56,57,58 thanks ehocdet)
