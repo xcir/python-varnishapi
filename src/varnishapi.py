@@ -326,7 +326,7 @@ class LIBVARNISHAPI:
         self.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f, c_void_p]
 
         #
-        #VSL_Setup; (undefined symbol at 5.0)
+        #VSL_Setup; (private func at 5.0)
         #VSL_Open; (undefined symbol at 4.0/4.1/5.0)
         #VSL_Arg;
         self.VSL_Arg = lib.VSL_Arg
