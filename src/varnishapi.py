@@ -265,7 +265,7 @@ class LIBVARNISHAPI:
         self.VSM_New = lib.VSM_New
         self.VSM_New.restype = c_void_p
 
-        #VSM_Diag;
+        #VSM_Diag; (undefined symbol at 4.0/4.1/5.0)
         #VSM_n_Arg;
         self.VSM_n_Arg = lib.VSM_n_Arg
         self.VSM_n_Arg.restype = c_int
@@ -285,17 +285,17 @@ class LIBVARNISHAPI:
         self.VSM_Open.restype = c_int
         self.VSM_Open.argtypes = [c_void_p]
 
-        #VSM_ReOpen;
-        #VSM_Seq;
-        #VSM_Head;
-        #VSM_Find_Chunk;
+        #VSM_ReOpen; (undefined symbol at 4.0/4.1/5.0)
+        #VSM_Seq; (undefined symbol at 4.0/4.1/5.0)
+        #VSM_Head; (undefined symbol at 4.0/4.1/5.0)
+        #VSM_Find_Chunk; (undefined symbol at 4.0/4.1/5.0)
 
         #VSM_Close;
         self.VSM_Close = lib.VSM_Close
         self.VSM_Close.argtypes = [c_void_p]
 
-        #VSM_iter0;
-        #VSM_intern;
+        #VSM_iter0; (undefined symbol at 4.0/4.1/5.0)
+        #VSM_intern; (undefined symbol at 4.0/4.1/5.0)
         #
         #VSC_Setup;
         #VSC_Arg;
