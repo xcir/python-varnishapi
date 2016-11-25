@@ -255,6 +255,18 @@ class VarnishAPIDefine40:
         self.VSL_r_pipe = 8
         self.VSL_r__MAX = 9
 
+        '''
+        //////////////////////////////
+        enum VSM_valid_e {
+            VSM_invalid,
+            VSM_valid,
+            VSM_similar,
+        };
+        '''
+        self.VSM_invalid = 0
+        self.VSM_valid = 1
+        self.VSM_similar = 2
+
 
 class LIBVARNISHAPI:
 
@@ -297,28 +309,39 @@ class LIBVARNISHAPI:
         #VSM_iter0; (undefined symbol at 4.0/4.1/5.0)
         #VSM_intern; (undefined symbol at 4.0/4.1/5.0)
         #
-        #VSC_Setup;
+        #VSC_Setup; (undefined symbol at 4.0/4.1/5.0)
         #VSC_Arg;
-        #VSC_Open;
+        self.VSC_Arg = lib.VSC_Arg
+        self.VSC_Arg.restype = c_int
+        self.VSC_Arg.argtypes = [c_void_p, c_int, c_char_p]
+
+        #VSC_Open; (undefined symbol at 4.0/4.1/5.0)
         #VSC_Main;
+        self.VSC_Main = lib.VSC_Main
+        self.VSC_Main.restype = c_void_p
+        self.VSC_Main.argtypes = [c_void_p, c_void_p]
+
         #VSC_Iter;
         self.VSC_Iter = lib.VSC_Iter
         self.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f, c_void_p]
 
         #
         #VSL_Setup;
-        #VSL_Open;
+        self.VSL_Setup = lib.VSL_Setup
+        self.VSL_Setup.argtypes = [c_void_p, c_void_p, c_long]
+
+        #VSL_Open; (undefined symbol at 4.0/4.1/5.0)
         #VSL_Arg;
         self.VSL_Arg = lib.VSL_Arg
         self.VSL_Arg.restype = c_int
         self.VSL_Arg.argtypes = [c_void_p, c_int, c_char_p]
 
-        #VSL_H_Print;
-        #VSL_Select;
-        #VSL_NonBlocking;
-        #VSL_Dispatch;
-        #VSL_NextLog;
-        #VSL_Matched;
+        #VSL_H_Print; (undefined symbol at 4.0/4.1/5.0)
+        #VSL_Select; (undefined symbol at 4.0/4.1/5.0)
+        #VSL_NonBlocking; (undefined symbol at 4.0/4.1/5.0)
+        #VSL_Dispatch; (undefined symbol at 4.0/4.1/5.0)
+        #VSL_NextLog; (undefined symbol at 4.0/4.1/5.0)
+        #VSL_Matched; (undefined symbol at 4.0/4.1/5.0)
         #
         #VCLI_WriteResult;
         #VCLI_ReadResult;
@@ -336,7 +359,7 @@ class LIBVARNISHAPI:
 
         #LIBVARNISHAPI_1.2
         # Functions:
-        #VSL_NextSLT;
+        #VSL_NextSLT; (undefined symbol at 4.0/4.1/5.0)
         #VSM_Error;
         self.VSM_Error = lib.VSM_Error
         self.VSM_Error.restype = c_char_p
@@ -346,11 +369,17 @@ class LIBVARNISHAPI:
 
         #LIBVARNISHAPI_1.3
         #VSM_Abandoned;
+        self.VSM_Abandoned = lib.VSM_Abandoned
+        self.VSM_Abandoned.argtypes = [c_void_p]
+
         #VSM_ResetError;
         self.VSM_ResetError = lib.VSM_ResetError
         self.VSM_ResetError.argtypes = [c_void_p]
 
         #VSM_StillValid;
+        self.VSM_StillValid = lib.VSM_StillValid
+        self.VSM_StillValid.argtypes = [c_void_p, c_void_p]
+
         #VSC_Mgt;
         #VSC_LevelDesc;
         #VSL_New;
