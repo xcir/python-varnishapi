@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2016-11-08
-:Version: 50.19
+:Date: 2016-11-27
+:Version: 50.20
 :Support Varnish Version: 4.0.x, 4.1.x 5.0.x
 :Check Python Version: 2.7.x, 3.4.x
 :Manual section: 3
@@ -403,6 +403,8 @@ Description
 
 HISTORY
 ===========
+Version 50.20: Improoved C binding.(p-r #67 thanks ema)
+
 Version 50.19: Fix -c -b option issue.(issue #65 thanks ema)
 
 Version 50.18: Support Varnish5.0 tags.
