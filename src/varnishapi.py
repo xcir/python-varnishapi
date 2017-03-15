@@ -199,6 +199,18 @@ class VSL_data(Structure):
         ("v_opt", c_int),                   # int                v_opt;
     ]
 
+class timespec(Structure):
+    _fields_ = [
+        ("tv_sec" , c_long),             # time_t   tv_sec;        /* seconds */
+        ("tv_nsec", c_long),             # long     tv_nsec;       /* nanoseconds */
+    ]
+
+class timeval (Structure):
+    _fields_ = [
+        ("tv_sec" , c_long),             # time_t      tv_sec;
+        ("tv_usec", c_long),             # suseconds_t tv_usec
+    ]
+
 # typedef int VSLQ_dispatch_f(struct VSL_data *vsl, struct VSL_transaction
 # * const trans[], void *priv);
 VSLQ_dispatch_f = CFUNCTYPE(
@@ -294,7 +306,9 @@ class LIBVARNISHAPI:
 
     def __init__(self, lib):
         #Check libvarnishapi version
-        if hasattr(lib, "VUT_Init"):
+        if hasattr(lib, "VTIM_format"):
+            self.apiversion = 1.6
+        elif hasattr(lib, "VUT_Init"):
             self.apiversion = 1.5
         elif hasattr(lib, "VSM_IsOpen"):
             self.apiversion = 1.4
@@ -645,7 +659,53 @@ class LIBVARNISHAPI:
         self.VCS_Message = lib.VCS_Message
         self.VCS_Message.argtypes = [c_char_p]
 
+        #LIBVARNISHAPI_1.6
+        if self.apiversion < 1.6:
+            return
 
+        #VTIM_format
+        self.VTIM_format = lib.VTIM_format
+        self.VTIM_format.argtypes = [c_double, c_char_p]
+
+        #VSB_bcat
+        self.VSB_bcat = lib.VSB_bcat
+        self.VSB_bcat.restype = c_int
+        self.VSB_bcat.argtypes = [c_void_p, c_void_p, c_long]
+
+        #VSB_quote
+        self.VSB_quote = lib.VSB_quote
+        self.VSB_quote.argtypes = [c_void_p, c_void_p, c_int, c_int]
+
+        #VSB_vprintf
+        self.VSB_vprintf = lib.VSB_vprintf
+        self.VSB_vprintf.restype = c_int
+
+        #VSB_delete
+        self.VSB_delete = lib.VSB_delete
+        self.VSB_delete.argtypes = [c_void_p]
+
+        #VSB_indent
+        self.VSB_indent = lib.VSB_indent
+        self.VSB_indent.argtypes = [c_void_p, c_int]
+
+        #VTIM_parse
+        self.VTIM_parse = lib.VTIM_parse
+        self.VTIM_parse.restype = c_double
+        self.VTIM_parse.argtypes = [c_char_p]
+
+        #VTIM_timespec
+        self.VTIM_timespec = lib.VTIM_timespec
+        self.VTIM_timespec.restype = POINTER(timespec)
+        self.VTIM_timespec.argtypes = [c_double]
+
+        #VTIM_timeval
+        self.VTIM_timeval = lib.VTIM_timeval
+        self.VTIM_timeval.restype = POINTER(timeval)
+        self.VTIM_timeval.argtypes = [c_double]
+
+        #VCS_Message
+        self.VCS_Message = lib.VCS_Message
+        self.VCS_Message.argtypes = [c_char_p]
         
 
 class VSLUtil:
