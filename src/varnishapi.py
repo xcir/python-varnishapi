@@ -1257,8 +1257,6 @@ class VarnishLog(VarnishAPI):
             return i
 
         self.lva.VSLQ_Flush(self.vslq, VSLQ_dispatch_f(self._callBack), None)
-        #self.lva.VSLQ_Delete(byref(cast(self.vslq, c_void_p)))
-        #self.vslq = None
         if i == -2:
             self.error = "Log abandoned"
             self.lva.VSLQ_SetCursor(self.vslq, None)
@@ -1280,8 +1278,11 @@ class VarnishLog(VarnishAPI):
             self.lva.VSL_Delete(self.vsl)
             self.vsl = 0
         if self.vsm:
-            self.lva.VSM_Delete(self.vsm)
-            self.vsm = 0
+            if self.lva.apiversion >= 1.7:
+                self.lva.VSM_Destroy(byref(cast(self.vsm, c_void_p)))
+            else:
+                self.lva.VSM_Delete(self.vsm)
+                self.vsm = 0
 
     def __VSL_Arg(self, opt, arg='\0'):
         return self.lva.VSL_Arg(self.vsl, ord(opt), arg)
