@@ -246,6 +246,13 @@ class VarnishAPIDefine40:
         self.VSL_COPT_BATCH = (1 << 1)
         self.VSL_COPT_TAILSTOP = (1 << 2)
         self.SLT_F_BINARY = (1 << 1)
+        
+        self.VSM_MGT_RUNNING = (1 << 1)
+        self.VSM_MGT_CHANGED = (1 << 2)
+        self.VSM_MGT_RESTARTED =(1 << 3)
+        self.VSM_WRK_RUNNING = (1 << 9)
+        self.VSM_WRK_CHANGED = (1 << 10)
+        self.VSM_WRK_RESTARTED = (1 << 11)
 
         '''
         //////////////////////////////
@@ -795,7 +802,6 @@ class LIBVARNISHAPI:
         self.VSM_Dup.restype = c_char_p
         self.VSM_Dup.argtypes = [c_void_p, c_char_p, c_char_p]
 
-        
 
 class VSLUtil:
 
@@ -1140,6 +1146,7 @@ class VarnishLog(VarnishAPI):
             return(i)
 
     def __Setup17(self):
+        self.hascursor = -1
         # query
         self.vslq = self.lva.VSLQ_New(self.vsl, None, self.__g_arg, self.__q_arg)
         if not self.vslq:
@@ -1159,12 +1166,12 @@ class VarnishLog(VarnishAPI):
             #self.name = self.lva.VSM_Name(self.vsm)
 
             if self.d_opt:
-                tail = self.defi.VSL_COPT_TAILSTOP
+                self.cursor_opt = self.defi.VSL_COPT_TAILSTOP | self.defi.VSL_COPT_BATCH
             else:
-                tail = self.defi.VSL_COPT_TAIL
+                self.cursor_opt = self.defi.VSL_COPT_TAIL | self.defi.VSL_COPT_BATCH
 
             c = self.lva.VSL_CursorVSM(
-                self.vsl, self.vsm, tail | self.defi.VSL_COPT_BATCH)
+                self.vsl, self.vsm, self.cursor_opt)
                 
             self.lva.VSLQ_SetCursor(self.vslq, byref(cast(c, c_void_p)))
             self.lva.VSL_ResetError(self.vsl)
@@ -1247,6 +1254,23 @@ class VarnishLog(VarnishAPI):
         return i
 
     def __Dispatch17(self, cb, priv=None):
+        if self.vsm:
+            stat = self.lva.VSM_Status(self.vsm)
+            if stat & self.defi.VSM_WRK_RESTARTED:
+                if self.hascursor < 1:
+                    self.error = "Log abandoned"
+                    self.lva.VSLQ_SetCursor(self.vslq, None)
+                    self.hascursor = 0
+            if self.hascursor < 1:
+                time.sleep(0.1)
+                c = self.lva.VSL_CursorVSM(self.vsl, self.vsm, self.cursor_opt)
+                if c == None:
+                    self.lva.VSL_ResetError(self.vsl)
+                    return 0
+                if self.hascursor == 0:
+                    self.error = "Log reacquired"
+                self.hascursor = 1
+                self.lva.VSLQ_SetCursor(self.vslq, byref(cast(c, c_void_p)))
         
         
         i = self.__cbMain(cb, priv)
@@ -1259,6 +1283,7 @@ class VarnishLog(VarnishAPI):
         self.lva.VSLQ_Flush(self.vslq, VSLQ_dispatch_f(self._callBack), None)
         if i == -2:
             self.error = "Log abandoned"
+            self.hascursor = 0
             self.lva.VSLQ_SetCursor(self.vslq, None)
         if i < -2:
             self.error = "Log overrun"
@@ -1266,9 +1291,9 @@ class VarnishLog(VarnishAPI):
 
     def Dispatch(self, cb, priv=None):
         if self.lva.apiversion >= 1.7:
-            self.__Dispatch17(cb, priv)
+            return self.__Dispatch17(cb, priv)
         else:
-            self.__Dispatch(cb, priv)
+            return self.__Dispatch(cb, priv)
 
     def Fini(self):
         if self.vslq:
