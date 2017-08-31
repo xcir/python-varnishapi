@@ -966,7 +966,6 @@ class VarnishAPI:
         return data
 
     def ArgDefault(self, op, arg):
-        print("a")
         if self.lva.apiversion >= 1.7:
             if op == "n":
                 # Set Varnish instance name.
@@ -999,6 +998,18 @@ class VarnishStat(VarnishAPI):
         if len(opt) > 0:
             self.__setArg(opt)
 
+        if self.lva.apiversion >= 1.7:
+            self.__Setup17()
+        else:
+            self.__Setup()
+
+    def __Setup17(self):
+        if self.lva.VSM_Attach(self.vsm, 2):
+            self.error = "VSM: %s" % self.lva.VSM_Error(
+                self.vsm).decode("utf8", "replace").rstrip()
+            return(0)
+
+    def __Setup(self):
         if self.lva.VSM_Open(self.vsm):
             self.error = "Can't open VSM file (%s)" % self.lva.VSM_Error(
                 self.vsm).rstrip()
