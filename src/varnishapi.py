@@ -41,6 +41,13 @@ class VSC_level_desc(Structure):
         ("ldesc", c_char_p),    # const char *ldesc;  /* long description */
     ]
 
+class VSC_level_desc17(Structure):
+    _fields_ = [
+        ("name",  c_char_p),    # const char *name;   /* name */
+        ("label", c_char_p),    # const char *label;  /* label */
+        ("sdesc", c_char_p),    # const char *sdesc;  /* short description */
+        ("ldesc", c_char_p),    # const char *ldesc;  /* long description */
+    ]
 
 class VSC_type_desc(Structure):
     _fields_ = [
@@ -100,11 +107,30 @@ class VSC_point(Structure):
         ("section", POINTER(VSC_section)),
     ]
 
+class VSC_point17(Structure):
+    _fields_ = [
+        ("ptr",  POINTER(c_ulonglong)), #const volatile uint64_t *ptr;	/* field value			*/
+        ("name", c_char_p), #const char *name;		/* field name			*/
+        ("ctype", c_char_p), #const char *ctype;		/* C-type			*/
+        ("semantics", c_int), #int semantics;			/* semantics			*/
+        ("format", c_int), #int format;			/* display format		*/
+        ("level", POINTER(VSC_level_desc17)), #const struct VSC_level_desc *level; /* verbosity level		*/
+        ("sdesc", c_char_p), #const char *sdesc;		/* short description		*/
+        ("ldesc", c_char_p), #const char *ldesc;		/* long description		*/
+
+    ]
+
 # typedef int VSC_iter_f(void *priv, const struct VSC_point *const pt);
 VSC_iter_f = CFUNCTYPE(
     c_int,
     c_void_p,
     POINTER(VSC_point)
+)
+# typedef int VSC_iter_f(void *priv, const struct VSC_point *const pt);
+VSC_iter_f17 = CFUNCTYPE(
+    c_int,
+    c_void_p,
+    POINTER(VSC_point17)
 )
 
 # typedef void VSL_tagfind_f(int tag, void *priv);
@@ -400,6 +426,8 @@ class LIBVARNISHAPI:
         #VSC_Iter;
         self.VSC_Iter = lib.VSC_Iter
         self.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f, c_void_p]
+        self.VSC_Iter17 = lib.VSC_Iter
+        self.VSC_Iter17.argtypes = [c_void_p, c_void_p, VSC_iter_f17, c_void_p]
 
         #
         #VSL_Setup; (private func at 5.0)
@@ -975,7 +1003,7 @@ class VarnishAPI:
         if self.lva.apiversion >= 1.7:
             if op == "n":
                 # Set Varnish instance name.
-                i = self.lva.VSM_Arg(self.vsm, ord('n'), arg)
+                i = self.lva.VSM_Arg(self.vsm, 'n', arg)
                 if i <= 0:
                     self.error = "%s" % self.lva.VSM_Error(self.vsm).rstrip()
                     return(i)
@@ -1042,7 +1070,6 @@ class VarnishStat(VarnishAPI):
             return(i)
 
     def _getstat(self, priv, pt):
-
         if not bool(pt):
             return(0)
         val = pt[0].ptr[0]
@@ -1062,15 +1089,32 @@ class VarnishStat(VarnishAPI):
 
         return(0)
 
+    def _getstat17(self, priv, pt):
+        if not bool(pt):
+            return(0)
+        val = pt[0].ptr[0]
+
+        key = pt[0].name
+
+        self._buf[key] = {'val': val, 'desc': pt[0].sdesc.decode("utf8", "replace")}
+
+        return(0)
+
     def getStats(self):
         self._buf = {}
-        self.lva.VSC_Iter(self.vsm, None, VSC_iter_f(self._getstat), None)
+        if self.lva.apiversion >= 1.7:
+            self.lva.VSC_Iter(self.vsm, None, VSC_iter_f17(self._getstat17), None)
+        else:
+            self.lva.VSC_Iter(self.vsm, None, VSC_iter_f(self._getstat), None)
         return self._buf
 
     def Fini(self):
         if self.vsm:
-            self.lva.VSM_Delete(self.vsm)
-            self.vsm = 0
+            if self.lva.apiversion >= 1.7:
+                self.lva.VSM_Destroy(byref(cast(self.vsm, c_void_p)))
+            else:
+                self.lva.VSM_Delete(self.vsm)
+                self.vsm = 0
 
 
 class VarnishLog(VarnishAPI):
