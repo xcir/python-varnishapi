@@ -857,6 +857,7 @@ class VSLUtil:
         'ReqStart': 'client.ip',
         'Hit': '',
         'HitPass': '',
+        'HitMiss': '',
         'ExpBan': '',
         'ExpKill': '',
         'WorkThread': '',
