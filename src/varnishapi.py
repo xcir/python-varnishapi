@@ -62,7 +62,6 @@ class VSM_fantom(Structure):
         ("chunk", c_void_p),      # struct VSM_chunk *chunk;
         ("b", c_void_p),          # void *b;   /* first byte of payload */
         ("e", c_void_p),          # void *e;   /* first byte past payload */
-        # ("priv", c_uint),   #uintptr_t         priv; /* VSM private */
         ("priv", c_void_p),       # uintptr_t priv; /* VSM private */
         ("_class", c_char * 8),   # char class[VSM_MARKER_LEN];
         ("type", c_char * 8),     # char type[VSM_MARKER_LEN];
@@ -81,30 +80,21 @@ class VSC_section(Structure):
 
 class VSC_desc(Structure):
     _fields_ = [
-        # const char *name;     /* field name                   */
-        ("name", c_char_p),
-        # const char *fmt;      /* field format ("uint64_t")    */
-        ("fmt", c_char_p),
-        # int flag;             /* 'c' = counter, 'g' = gauge   */
-        ("flag", c_int),
-        # const char *sdesc;    /* short description            */
-        ("sdesc", c_char_p),
-        # const char *ldesc;    /* long description             */
-        ("ldesc", c_char_p),
-        # const struct VSC_level_desc *level;
-        ("level", POINTER(VSC_level_desc)),
+        
+        ("name", c_char_p),                 # const char *name;     /* field name                   */
+        ("fmt", c_char_p),                  # const char *fmt;      /* field format ("uint64_t")    */
+        ("flag", c_int),                    # int flag;             /* 'c' = counter, 'g' = gauge   */
+        ("sdesc", c_char_p),                # const char *sdesc;    /* short description            */
+        ("ldesc", c_char_p),                # const char *ldesc;    /* long description             */
+        ("level", POINTER(VSC_level_desc)), # const struct VSC_level_desc *level;
     ]
 
 
 class VSC_point(Structure):
     _fields_ = [
-        # const struct VSC_desc *desc;  /* point description            */
-        ("desc", POINTER(VSC_desc)),
-        # ("ptr", c_void_p), #const volatile void *ptr; /* field value  */
-        # const volatile void *ptr;     /* field value                  */
-        ("ptr", POINTER(c_ulonglong)),
-        # const struct VSC_section *section;
-        ("section", POINTER(VSC_section)),
+        ("desc", POINTER(VSC_desc)),          # const struct VSC_desc *desc;  /* point description            */
+        ("ptr", POINTER(c_ulonglong)),        # const volatile void *ptr;     /* field value                  */
+        ("section", POINTER(VSC_section)),    # const struct VSC_section *section;
     ]
 
 class VSC_point17(Structure):
@@ -144,10 +134,8 @@ VSL_tagfind_f = CFUNCTYPE(
 
 class VSLC_ptr(Structure):
     _fields_ = [
-        # const uint32_t *ptr; /* Record pointer */
-        ("ptr", POINTER(c_uint32)),
-        # unsigned priv;
-        ("priv", c_uint),
+        ("ptr", POINTER(c_uint32)), # const uint32_t *ptr; /* Record pointer */
+        ("priv", c_uint),           # unsigned priv;
     ]
 
 
@@ -172,10 +160,8 @@ class VSL_transaction(Structure):
 
 class VTAILQ_HEAD(Structure):
     _fields_ = [
-        # struct type *vtqh_first;    /* first element */
-        ("vtqh_first", c_void_p),
-        # struct type **vtqh_last;    /* addr of last next element */
-        ("vtqh_last", POINTER(c_void_p)),
+        ("vtqh_first", c_void_p),         # struct type *vtqh_first;    /* first element */
+        ("vtqh_last", POINTER(c_void_p)), # struct type **vtqh_last;    /* addr of last next element */
     ]
 
 
@@ -188,23 +174,12 @@ class vbitmap(Structure):
 
 class vsb(Structure):
     _fields_ = [
-        # unsigned   magic;
-        ("magic", c_uint),
-        # char       *s_buf;    /* storage buffer */
-        ("s_buf", c_char_p),
-        # int        s_error;   /* current error code */
-        ("s_error", c_int),
-        # ssize_t    s_size;    /* size of storage buffer */
-        # ("s_size", c_ssize_t),
-        # ssize_t    s_len;     /* current length of string */
-        # ("s_len", c_ssize_t),
-
-        # ssize_t    s_size;    /* size of storage buffer */
-        ("s_size", c_long),
-        # ssize_t    s_len;     /* current length of string */
-        ("s_len", c_long),
-        # int        s_flags;   /* flags */
-        ("s_flags", c_int),
+        ("magic", c_uint),       # unsigned   magic;
+        ("s_buf", c_char_p),     # char       *s_buf;    /* storage buffer */
+        ("s_error", c_int),      # int        s_error;   /* current error code */
+        ("s_size", c_long),      # ssize_t    s_size;    /* size of storage buffer */
+        ("s_len", c_long),       # ssize_t    s_len;     /* current length of string */
+        ("s_flags", c_int),      # int        s_flags;   /* flags */
     ]
 
 
