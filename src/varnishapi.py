@@ -109,14 +109,14 @@ class VSC_point(Structure):
 
 class VSC_point17(Structure):
     _fields_ = [
-        ("ptr",  POINTER(c_ulonglong)), #const volatile uint64_t *ptr;	/* field value			*/
-        ("name", c_char_p), #const char *name;		/* field name			*/
-        ("ctype", c_char_p), #const char *ctype;		/* C-type			*/
-        ("semantics", c_int), #int semantics;			/* semantics			*/
-        ("format", c_int), #int format;			/* display format		*/
+        ("ptr",  POINTER(c_ulonglong)),       #const volatile uint64_t *ptr;	/* field value			*/
+        ("name", c_char_p),                   #const char *name;		/* field name			*/
+        ("ctype", c_char_p),                  #const char *ctype;		/* C-type			*/
+        ("semantics", c_int),                 #int semantics;			/* semantics			*/
+        ("format", c_int),                    #int format;			/* display format		*/
         ("level", POINTER(VSC_level_desc17)), #const struct VSC_level_desc *level; /* verbosity level		*/
-        ("sdesc", c_char_p), #const char *sdesc;		/* short description		*/
-        ("ldesc", c_char_p), #const char *ldesc;		/* long description		*/
+        ("sdesc", c_char_p),                  #const char *sdesc;		/* short description		*/
+        ("ldesc", c_char_p),                  #const char *ldesc;		/* long description		*/
 
     ]
 
@@ -425,9 +425,10 @@ class LIBVARNISHAPI:
 
         #VSC_Iter;
         self.VSC_Iter = lib.VSC_Iter
-        self.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f, c_void_p]
-        self.VSC_Iter17 = lib.VSC_Iter
-        self.VSC_Iter17.argtypes = [c_void_p, c_void_p, VSC_iter_f17, c_void_p]
+        if self.apiversion >= 1.7:
+            self.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f17, c_void_p]
+        else:
+            self.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f, c_void_p]
 
         #
         #VSL_Setup; (private func at 5.0)
@@ -1007,6 +1008,8 @@ class VarnishAPI:
                 if i <= 0:
                     self.error = "%s" % self.lva.VSM_Error(self.vsm).rstrip()
                     return(i)
+            elif op == "N":
+                pass
         else:
             if op == "n":
                 # Set Varnish instance name.
@@ -1093,9 +1096,7 @@ class VarnishStat(VarnishAPI):
         if not bool(pt):
             return(0)
         val = pt[0].ptr[0]
-
         key = pt[0].name
-
         self._buf[key] = {'val': val, 'desc': pt[0].sdesc.decode("utf8", "replace")}
 
         return(0)
