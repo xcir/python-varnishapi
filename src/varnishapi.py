@@ -1026,6 +1026,14 @@ class VarnishAPI:
                 self.d_opt = 1
         return(None)
 
+    def Fini(self):
+        if self.vsm:
+            if self.lva.apiversion >= 1.7:
+                self.lva.VSM_Destroy(byref(cast(self.vsm, c_void_p)))
+            else:
+                self.lva.VSM_Delete(self.vsm)
+                self.vsm = 0
+
 
 class VarnishStat(VarnishAPI):
 
@@ -1109,13 +1117,6 @@ class VarnishStat(VarnishAPI):
             self.lva.VSC_Iter(self.vsm, None, VSC_iter_f(self._getstat), None)
         return self._buf
 
-    def Fini(self):
-        if self.vsm:
-            if self.lva.apiversion >= 1.7:
-                self.lva.VSM_Destroy(byref(cast(self.vsm, c_void_p)))
-            else:
-                self.lva.VSM_Delete(self.vsm)
-                self.vsm = 0
 
 
 class VarnishLog(VarnishAPI):
@@ -1347,12 +1348,7 @@ class VarnishLog(VarnishAPI):
         if self.vsl:
             self.lva.VSL_Delete(self.vsl)
             self.vsl = 0
-        if self.vsm:
-            if self.lva.apiversion >= 1.7:
-                self.lva.VSM_Destroy(byref(cast(self.vsm, c_void_p)))
-            else:
-                self.lva.VSM_Delete(self.vsm)
-                self.vsm = 0
+        VarnishAPI.Fini(self)
 
     def __VSL_Arg(self, opt, arg='\0'):
         return self.lva.VSL_Arg(self.vsl, ord(opt), arg)
