@@ -107,6 +107,7 @@ class VSC_point17(Structure):
         ("level", POINTER(VSC_level_desc17)), #const struct VSC_level_desc *level; /* verbosity level		*/
         ("sdesc", c_char_p),                  #const char *sdesc;		/* short description		*/
         ("ldesc", c_char_p),                  #const char *ldesc;		/* long description		*/
+        ("priv",  c_void_p),                  #void *priv;			/* return val from VSC_new_f	*/
 
     ]
 
@@ -618,8 +619,8 @@ class LIBVARNISHAPI:
         self.VUT_Error.argtypes = [c_int, c_char_p]
 
         #VUT_g_Arg;
-        self.VUT_g_Arg = lib.VUT_g_Arg
-        self.VUT_g_Arg.argtypes = [c_char_p]
+        #self.VUT_g_Arg = lib.VUT_g_Arg
+        #self.VUT_g_Arg.argtypes = [c_char_p]
 
         #VUT_Arg;
         self.VUT_Arg = lib.VUT_Arg
@@ -777,14 +778,6 @@ class LIBVARNISHAPI:
         self.VSM_Unmap.restype = c_int
         self.VSM_Unmap.argtypes = [c_void_p, c_void_p]
 
-        #VSC_Destroy_Point;
-        self.VSC_Destroy_Point = lib.VSC_Destroy_Point
-        self.VSC_Destroy_Point.argtypes = [POINTER(POINTER(VSC_point))]
-
-        #VSC_Clone_Point;
-        self.VSC_Clone_Point = lib.VSC_Clone_Point
-        self.VSC_Clone_Point.argtypes = [POINTER(VSC_point)]
-
         #VSM_Refresh;
         #VSM_Attach;
         self.VSM_Attach = lib.VSM_Attach
@@ -806,6 +799,9 @@ class LIBVARNISHAPI:
         self.VSM_Dup.restype = c_char_p
         self.VSM_Dup.argtypes = [c_void_p, c_char_p, c_char_p]
 
+        #VSC_New;
+        self.VSC_New = lib.VSC_New
+        self.VSC_New.restype = c_void_p
 
 class VSLUtil:
 
@@ -1029,6 +1025,7 @@ class VarnishStat(VarnishAPI):
             self.error = "VSM: %s" % self.lva.VSM_Error(
                 self.vsm).decode("utf8", "replace").rstrip()
             return(0)
+        self.vsc = self.lva.VSC_New();
 
     def __Setup(self):
         if self.lva.VSM_Open(self.vsm):
@@ -1088,9 +1085,9 @@ class VarnishStat(VarnishAPI):
     def getStats(self):
         self._buf = {}
         if self.lva.apiversion >= 1.7:
-            self.lva.VSC_Iter(self.vsm, None, VSC_iter_f17(self._getstat17), None)
+            self.lva.VSC_Iter(self.vsc, self.vsm, VSC_iter_f17(self._getstat17), None)
         else:
-            self.lva.VSC_Iter(self.vsm, None, VSC_iter_f(self._getstat), None)
+            self.lva.VSC_Iter(self.vsc, self.vsm, VSC_iter_f(self._getstat), None)
         return self._buf
 
 
