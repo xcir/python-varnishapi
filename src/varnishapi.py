@@ -1395,19 +1395,19 @@ class VarnishStat(VarnishAPI):
         if len(opt) > 0:
             self.__setArg(opt)
 
-        if self.lva.apiversion >= 1.7:
-            self.__Setup17()
+        if self.lva.apiversion >= 2.0:
+            self.__Setup20()
         else:
-            self.__Setup()
+            self.__Setup10()
 
-    def __Setup17(self):
+    def __Setup20(self):
         if self.lva.VSM_Attach(self.vsm, 2):
             self.error = "VSM: %s" % self.lva.VSM_Error(
                 self.vsm).decode("utf8", "replace").rstrip()
             return(0)
         self.vsc = self.lva.VSC_New();
 
-    def __Setup(self):
+    def __Setup10(self):
         if self.lva.VSM_Open(self.vsm):
             self.error = "Can't open VSM file (%s)" % self.lva.VSM_Error(
                 self.vsm).rstrip()
