@@ -1471,7 +1471,6 @@ class VarnishStat(VarnishAPI):
         return self._buf
 
 
-
 class VarnishLog(VarnishAPI):
 
     def __init__(self, opt='', sopath='libvarnishapi.so.1', dataDecode=True):
@@ -1723,7 +1722,6 @@ class VarnishLog(VarnishAPI):
                 'vxid_parent': tra.vxid_parent,
                 'reason': tra.reason,
             }
-
 
             while 1:
                 i = self.lva.VSL_Next(tra.c)

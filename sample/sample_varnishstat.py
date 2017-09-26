@@ -3,7 +3,9 @@
 # coding: utf-8
 import varnishapi
 
-vsc = varnishapi.VarnishStat()
+arg           = {}
+
+vsc = varnishapi.VarnishStat(**arg)
 if vsc.error:
 	print(vsc.error)
 	exit(1)
