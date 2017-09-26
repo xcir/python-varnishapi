@@ -68,7 +68,7 @@ class VSC_level_desc(Structure):
         ("ldesc", c_char_p),    # const char *ldesc;  /* long description */
     ]
 
-class VSC_level_desc17(Structure):
+class VSC_level_desc20(Structure):
     _fields_ = [
         ("name",  c_char_p),    # const char *name;   /* name */
         ("label", c_char_p),    # const char *label;  /* label */
@@ -124,14 +124,14 @@ class VSC_point(Structure):
         ("section", POINTER(VSC_section)),    # const struct VSC_section *section;
     ]
 
-class VSC_point17(Structure):
+class VSC_point20(Structure):
     _fields_ = [
         ("ptr",  POINTER(c_ulonglong)),       #const volatile uint64_t *ptr;	/* field value			*/
         ("name", c_char_p),                   #const char *name;		/* field name			*/
         ("ctype", c_char_p),                  #const char *ctype;		/* C-type			*/
         ("semantics", c_int),                 #int semantics;			/* semantics			*/
         ("format", c_int),                    #int format;			/* display format		*/
-        ("level", POINTER(VSC_level_desc17)), #const struct VSC_level_desc *level; /* verbosity level		*/
+        ("level", POINTER(VSC_level_desc20)), #const struct VSC_level_desc *level; /* verbosity level		*/
         ("sdesc", c_char_p),                  #const char *sdesc;		/* short description		*/
         ("ldesc", c_char_p),                  #const char *ldesc;		/* long description		*/
         ("priv",  c_void_p),                  #void *priv;			/* return val from VSC_new_f	*/
@@ -145,10 +145,10 @@ VSC_iter_f = CFUNCTYPE(
     POINTER(VSC_point)
 )
 # typedef int VSC_iter_f(void *priv, const struct VSC_point *const pt);
-VSC_iter_f17 = CFUNCTYPE(
+VSC_iter_f20 = CFUNCTYPE(
     c_int,
     c_void_p,
-    POINTER(VSC_point17)
+    POINTER(VSC_point20)
 )
 
 # typedef void VSL_tagfind_f(int tag, void *priv);
@@ -161,14 +161,14 @@ VSL_tagfind_f = CFUNCTYPE(
 VSC_new_f = CFUNCTYPE(
     None,
     c_void_p,
-    POINTER(VSC_point17)
+    POINTER(VSC_point20)
 )
 
 #typedef void VSC_destroy_f(void *priv, const struct VSC_point *const pt);
 VSC_destroy_f = CFUNCTYPE(
     None,
     c_void_p,
-    POINTER(VSC_point17)
+    POINTER(VSC_point20)
 )
 
 #
@@ -909,7 +909,7 @@ class LIBVARNISHAPI20:
 
         #		VSC_Iter;
         self.lc.VSC_Iter = lib.VSC_Iter
-        self.lc.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f17, c_void_p]
+        self.lc.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f20, c_void_p]
 
         #		VSC_New;
         self.lc.VSC_New = lib.VSC_New
@@ -1353,7 +1353,7 @@ class VarnishAPI:
         return data
 
     def ArgDefault(self, op, arg):
-        if self.lva.apiversion >= 1.7:
+        if self.lva.apiversion >= 2.0:
             if op == "n":
                 # Set Varnish instance name.
                 i = self.lva.VSM_Arg(self.vsm, 'n', arg)
@@ -1380,7 +1380,7 @@ class VarnishAPI:
 
     def Fini(self):
         if self.vsm:
-            if self.lva.apiversion >= 1.7:
+            if self.lva.apiversion >= 2.0:
                 self.lva.VSM_Destroy(byref(cast(self.vsm, c_void_p)))
             else:
                 self.lva.VSM_Delete(self.vsm)
@@ -1433,7 +1433,7 @@ class VarnishStat(VarnishAPI):
         if i is not None:
             return(i)
 
-    def _getstat(self, priv, pt):
+    def _getstat10(self, priv, pt):
         if not bool(pt):
             return(0)
         val = pt[0].ptr[0]
@@ -1453,7 +1453,7 @@ class VarnishStat(VarnishAPI):
 
         return(0)
 
-    def _getstat17(self, priv, pt):
+    def _getstat20(self, priv, pt):
         if not bool(pt):
             return(0)
         val = pt[0].ptr[0]
@@ -1464,10 +1464,10 @@ class VarnishStat(VarnishAPI):
 
     def getStats(self):
         self._buf = {}
-        if self.lva.apiversion >= 1.7:
-            self.lva.VSC_Iter(self.vsc, self.vsm, VSC_iter_f17(self._getstat17), None)
+        if self.lva.apiversion >= 2.0:
+            self.lva.VSC_Iter(self.vsc, self.vsm, VSC_iter_f20(self._getstat20), None)
         else:
-            self.lva.VSC_Iter(self.vsm, None, VSC_iter_f(self._getstat), None)
+            self.lva.VSC_Iter(self.vsm, None, VSC_iter_f(self._getstat10), None)
         return self._buf
 
 
@@ -1489,10 +1489,10 @@ class VarnishLog(VarnishAPI):
         if len(opt) > 0:
             self.__setArg(opt)
             
-        if self.lva.apiversion >= 1.7:
-            self.__Setup17()
+        if self.lva.apiversion >= 2.0:
+            self.__Setup20()
         else:
-            self.__Setup()
+            self.__Setup10()
 
 
     def __setArg(self, opt):
@@ -1544,7 +1544,7 @@ class VarnishLog(VarnishAPI):
                 self.error = "%s" % self.lva.VSL_Error(self.vsl).decode("utf8", "replace")
             return(i)
 
-    def __Setup17(self):
+    def __Setup20(self):
         self.hascursor = -1
         # query
         self.vslq = self.lva.VSLQ_New(self.vsl, None, self.__g_arg, self.__q_arg)
@@ -1581,7 +1581,7 @@ class VarnishLog(VarnishAPI):
 
         return(1)
 
-    def __Setup(self):
+    def __Setup10(self):
         if self.__r_arg:
             c = self.lva.VSL_CursorFile(self.vsl, self.__r_arg, 0)
         else:
@@ -1634,7 +1634,7 @@ class VarnishLog(VarnishAPI):
             self.vslq, VSLQ_dispatch_f(self._callBack), None)
         return(i)
 
-    def __Dispatch(self, cb, priv=None):
+    def __Dispatch10(self, cb, priv=None):
         i = self.__cbMain(cb, priv)
         if i > -2:
             return i
@@ -1652,7 +1652,7 @@ class VarnishLog(VarnishAPI):
             self.error = "Log overrun"
         return i
 
-    def __Dispatch17(self, cb, priv=None):
+    def __Dispatch20(self, cb, priv=None):
         if self.vsm:
             stat = self.lva.VSM_Status(self.vsm)
             if stat & self.defi.VSM_WRK_RESTARTED:
@@ -1689,10 +1689,10 @@ class VarnishLog(VarnishAPI):
         return i
 
     def Dispatch(self, cb, priv=None):
-        if self.lva.apiversion >= 1.7:
-            return self.__Dispatch17(cb, priv)
+        if self.lva.apiversion >= 2.0:
+            return self.__Dispatch20(cb, priv)
         else:
-            return self.__Dispatch(cb, priv)
+            return self.__Dispatch10(cb, priv)
 
     def Fini(self):
         if self.vslq:
