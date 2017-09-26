@@ -33,6 +33,33 @@ import getopt
 import time
 
 
+
+class VUT (Structure):
+    _fields_ = [
+        ("magic" , c_uint),   #unsigned	magic;
+        ("progname" , c_char_p),            #const char	*progname;
+        ("d_opt" , c_int),                  #int		d_opt;
+        ("D_opt" , c_int),                  #int		D_opt;
+        ("g_arg" , c_int),                  #int		g_arg;
+        ("k_arg" , c_int),                  #int		k_arg;
+        ("n_arg" , c_char_p),               #char		*n_arg;
+        ("P_arg" , c_char_p),               #char		*P_arg;
+        ("q_arg" , c_char_p),               #char		*q_arg;
+        ("r_arg" , c_char_p),               #char		*r_arg;
+        ("t_arg" , c_char_p),               #char		*t_arg;
+        ("vsl" , c_void_p),                 #struct VSL_data	*vsl;
+        ("vsm" , c_void_p),                 #struct vsm	*vsm;
+        ("vslq" , c_void_p),                #struct VSLQ	*vslq;
+        ("sighup" , c_int),                 #int		sighup;
+        ("sigint" , c_int),                 #int		sigint;
+        ("sigusr1" , c_int),                #int		sigusr1;
+        ("idle_f" , c_void_p),              #VUT_cb_f	*idle_f;
+        ("sighup_f" , c_void_p),            #VUT_cb_f	*sighup_f;
+        ("error_f" , c_void_p),             #VUT_error_f	*error_f;
+        ("dispatch_f" , c_void_p),          #VSLQ_dispatch_f	*dispatch_f;
+        ("dispatch_priv" , c_void_p)        #void		*dispatch_priv;
+    ]
+
 class VSC_level_desc(Structure):
     _fields_ = [
         ("verbosity", c_uint),  # unsigned verbosity;
@@ -128,6 +155,20 @@ VSC_iter_f17 = CFUNCTYPE(
 VSL_tagfind_f = CFUNCTYPE(
     c_int,
     c_void_p
+)
+
+#typedef void *VSC_new_f(void *priv, const struct VSC_point *const pt);
+VSC_new_f = CFUNCTYPE(
+    None,
+    c_void_p,
+    POINTER(VSC_point17)
+)
+
+#typedef void VSC_destroy_f(void *priv, const struct VSC_point *const pt);
+VSC_destroy_f = CFUNCTYPE(
+    None,
+    c_void_p,
+    POINTER(VSC_point17)
 )
 
 #
@@ -231,14 +272,8 @@ class vopt_spec (Structure):
 
     ]
 
-# typedef int VSLQ_dispatch_f(struct VSL_data *vsl, struct VSL_transaction
-# * const trans[], void *priv);
-VSLQ_dispatch_f = CFUNCTYPE(
-    c_int,
-    POINTER(VSL_data),
-    POINTER(POINTER(VSL_transaction)),
-    c_void_p
-)
+
+
 
 
 class VarnishAPIDefine40:
@@ -329,90 +364,100 @@ class VarnishAPIDefine40:
         self.VAS_VCL = 4
 
 
-class LIBVARNISHAPI:
+#typedef void VUT_sighandler_f(int);
+VUT_sighandler_f = CFUNCTYPE(
+    None,
+    c_int
+)
 
-    def __init__(self, lib):
-        #Check libvarnishapi version
-        if hasattr(lib, "VSC_ChangeLevel"):
-            self.apiversion = 1.7
-        elif hasattr(lib, "VTIM_format"):
-            self.apiversion = 1.6
+# typedef int VSLQ_dispatch_f(struct VSL_data *vsl, struct VSL_transaction
+# * const trans[], void *priv);
+VSLQ_dispatch_f = CFUNCTYPE(
+    c_int,
+    POINTER(VSL_data),
+    POINTER(POINTER(VSL_transaction)),
+    c_void_p
+)
+
+# typedef int VUT_cb_f(struct VUT *);
+VUT_cb_f = CFUNCTYPE(
+    c_int,
+    POINTER(VUT)
+)
+class LIBVARNISHAPI10:
+    def __init__(self, lc):
+        self.lc = lc
+    
+    def run(self, lib):
+        if hasattr(lib, "VTIM_format"):
+            self.lc.apiversion = 1.6
         elif hasattr(lib, "VUT_Init"):
-            self.apiversion = 1.5
+            self.lc.apiversion = 1.5
         elif hasattr(lib, "VSM_IsOpen"):
-            self.apiversion = 1.4
+            self.lc.apiversion = 1.4
         else:
-            self.apiversion = 1.3
-
+            self.lc.apiversion = 1.3
 
         #LIBVARNISHAPI_1.0
         #VSM_New;
-        self.VSM_New = lib.VSM_New
-        self.VSM_New.restype = c_void_p
+        self.lc.VSM_New = lib.VSM_New
+        self.lc.VSM_New.restype = c_void_p
 
         #VSM_Diag; (undefined symbol at 4.0/4.1/5.0)
-        
-        if hasattr(lib, "VSM_n_Arg"):
-            #deleted 1.7
-            #VSM_n_Arg;
-            self.VSM_n_Arg = lib.VSM_n_Arg
-            self.VSM_n_Arg.restype = c_int
-            self.VSM_n_Arg.argtypes = [c_void_p, c_char_p]
+        #VSM_n_Arg;
+        self.lc.VSM_n_Arg = lib.VSM_n_Arg
+        self.lc.VSM_n_Arg.restype = c_int
+        self.lc.VSM_n_Arg.argtypes = [c_void_p, c_char_p]
 
-            #VSM_Name;
-            self.VSM_Name = lib.VSM_Name
-            self.VSM_Name.restype = c_char_p
-            self.VSM_Name.argtypes = [c_void_p]
+        #VSM_Name;
+        self.lc.VSM_Name = lib.VSM_Name
+        self.lc.VSM_Name.restype = c_char_p
+        self.lc.VSM_Name.argtypes = [c_void_p]
 
-            #VSM_Delete;
-            self.VSM_Delete = lib.VSM_Delete
-            self.VSM_Delete.argtypes = [c_void_p]
+        #VSM_Delete;
+        self.lc.VSM_Delete = lib.VSM_Delete
+        self.lc.VSM_Delete.argtypes = [c_void_p]
 
-            #VSM_Open;
-            self.VSM_Open = lib.VSM_Open
-            self.VSM_Open.restype = c_int
-            self.VSM_Open.argtypes = [c_void_p]
-
-            #VSM_Close;
-            self.VSM_Close = lib.VSM_Close
-            self.VSM_Close.argtypes = [c_void_p]
-
-            #VSC_Main;
-            self.VSC_Main = lib.VSC_Main
-            self.VSC_Main.restype = c_void_p
-            self.VSC_Main.argtypes = [c_void_p, c_void_p]
+        #VSM_Open;
+        self.lc.VSM_Open = lib.VSM_Open
+        self.lc.VSM_Open.restype = c_int
+        self.lc.VSM_Open.argtypes = [c_void_p]
 
         #VSM_ReOpen; (undefined symbol at 4.0/4.1/5.0)
         #VSM_Seq; (undefined symbol at 4.0/4.1/5.0)
         #VSM_Head; (undefined symbol at 4.0/4.1/5.0)
         #VSM_Find_Chunk; (undefined symbol at 4.0/4.1/5.0)
 
+        #VSM_Close;
+        self.lc.VSM_Close = lib.VSM_Close
+        self.lc.VSM_Close.argtypes = [c_void_p]
 
         #VSM_iter0; (undefined symbol at 4.0/4.1/5.0)
         #VSM_intern; (undefined symbol at 4.0/4.1/5.0)
         #
         #VSC_Setup; (undefined symbol at 4.0/4.1/5.0)
         #VSC_Arg;
-        self.VSC_Arg = lib.VSC_Arg
-        self.VSC_Arg.restype = c_int
-        self.VSC_Arg.argtypes = [c_void_p, c_int, c_char_p]
+        self.lc.VSC_Arg = lib.VSC_Arg
+        self.lc.VSC_Arg.restype = c_int
+        self.lc.VSC_Arg.argtypes = [c_void_p, c_int, c_char_p]
 
         #VSC_Open; (undefined symbol at 4.0/4.1/5.0)
+        #VSC_Main;
+        self.lc.VSC_Main = lib.VSC_Main
+        self.lc.VSC_Main.restype = c_void_p
+        self.lc.VSC_Main.argtypes = [c_void_p, c_void_p]
 
         #VSC_Iter;
-        self.VSC_Iter = lib.VSC_Iter
-        if self.apiversion >= 1.7:
-            self.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f17, c_void_p]
-        else:
-            self.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f, c_void_p]
+        self.lc.VSC_Iter = lib.VSC_Iter
+        self.lc.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f, c_void_p]
 
         #
         #VSL_Setup; (private func at 5.0)
         #VSL_Open; (undefined symbol at 4.0/4.1/5.0)
         #VSL_Arg;
-        self.VSL_Arg = lib.VSL_Arg
-        self.VSL_Arg.restype = c_int
-        self.VSL_Arg.argtypes = [c_void_p, c_int, c_char_p]
+        self.lc.VSL_Arg = lib.VSL_Arg
+        self.lc.VSL_Arg.restype = c_int
+        self.lc.VSL_Arg.argtypes = [c_void_p, c_int, c_char_p]
 
         #VSL_H_Print; (undefined symbol at 4.0/4.1/5.0)
         #VSL_Select; (undefined symbol at 4.0/4.1/5.0)
@@ -431,377 +476,712 @@ class LIBVARNISHAPI:
         #LIBVARNISHAPI_1.1
         # Functions:
         #VSL_Name2Tag;
-        self.VSL_Name2Tag = lib.VSL_Name2Tag
-        self.VSL_Name2Tag.restype = c_int
-        self.VSL_Name2Tag.argtypes = [c_char_p, c_int]
+        self.lc.VSL_Name2Tag = lib.VSL_Name2Tag
+        self.lc.VSL_Name2Tag.restype = c_int
+        self.lc.VSL_Name2Tag.argtypes = [c_char_p, c_int]
 
         #LIBVARNISHAPI_1.2
         # Functions:
         #VSL_NextSLT; (undefined symbol at 4.0/4.1/5.0)
         #VSM_Error;
-        self.VSM_Error = lib.VSM_Error
-        self.VSM_Error.restype = c_char_p
-        self.VSM_Error.argtypes = [c_void_p]
+        self.lc.VSM_Error = lib.VSM_Error
+        self.lc.VSM_Error.restype = c_char_p
+        self.lc.VSM_Error.argtypes = [c_void_p]
 
         #VSM_Get;
-        self.VSM_Get = lib.VSM_Get
-        self.VSM_Get.argtypes = [c_void_p, c_void_p, c_char_p, c_char_p, c_char_p]
+        self.lc.VSM_Get = lib.VSM_Get
+        self.lc.VSM_Get.argtypes = [c_void_p, c_void_p, c_char_p, c_char_p, c_char_p]
 
         #LIBVARNISHAPI_1.3
-
-        if hasattr(lib, "VSM_Abandoned"):
-            #VSM_Abandoned;
-            self.VSM_Abandoned = lib.VSM_Abandoned
-            self.VSM_Abandoned.argtypes = [c_void_p]
-
-            #VSC_Mgt;
-            self.VSC_Mgt = lib.VSC_Mgt
-            self.VSC_Mgt.restype = c_void_p
-            self.VSC_Mgt.argtypes = [c_void_p, c_void_p]
-
-            #VSC_LevelDesc;
-            self.VSC_LevelDesc = lib.VSC_LevelDesc
-            self.VSC_LevelDesc.restype = c_void_p
-            self.VSC_LevelDesc.argtypes = [c_uint]
-
-            #VSM_N_Arg;
-            self.VSM_N_Arg = lib.VSM_N_Arg
-            self.VSM_N_Arg.restype = c_int
-            self.VSM_N_Arg.argtypes = [c_void_p, c_char_p]
+        #VSM_Abandoned;
+        self.lc.VSM_Abandoned = lib.VSM_Abandoned
+        self.lc.VSM_Abandoned.argtypes = [c_void_p]
 
         #VSM_ResetError;
-        self.VSM_ResetError = lib.VSM_ResetError
-        self.VSM_ResetError.argtypes = [c_void_p]
+        self.lc.VSM_ResetError = lib.VSM_ResetError
+        self.lc.VSM_ResetError.argtypes = [c_void_p]
 
         #VSM_StillValid;
-        self.VSM_StillValid = lib.VSM_StillValid
-        self.VSM_StillValid.argtypes = [c_void_p, c_void_p]
+        self.lc.VSM_StillValid = lib.VSM_StillValid
+        self.lc.VSM_StillValid.argtypes = [c_void_p, c_void_p]
 
+        #VSC_Mgt;
+        self.lc.VSC_Mgt = lib.VSC_Mgt
+        self.lc.VSC_Mgt.restype = c_void_p
+        self.lc.VSC_Mgt.argtypes = [c_void_p, c_void_p]
 
+        #VSC_LevelDesc;
+        self.lc.VSC_LevelDesc = lib.VSC_LevelDesc
+        self.lc.VSC_LevelDesc.restype = c_void_p
+        self.lc.VSC_LevelDesc.argtypes = [c_uint]
 
         #VSL_New;
-        self.VSL_New = lib.VSL_New
-        self.VSL_New.restype = c_void_p
+        self.lc.VSL_New = lib.VSL_New
+        self.lc.VSL_New.restype = c_void_p
 
         #VSL_Delete;
-        self.VSL_Delete = lib.VSL_Delete
-        self.VSL_Delete.argtypes = [c_void_p]
+        self.lc.VSL_Delete = lib.VSL_Delete
+        self.lc.VSL_Delete.argtypes = [c_void_p]
 
         #VSL_Error;
-        self.VSL_Error = lib.VSL_Error
-        self.VSL_Error.restype = c_char_p
-        self.VSL_Error.argtypes = [c_void_p]
+        self.lc.VSL_Error = lib.VSL_Error
+        self.lc.VSL_Error.restype = c_char_p
+        self.lc.VSL_Error.argtypes = [c_void_p]
 
         #VSL_ResetError;
-        self.VSL_ResetError = lib.VSL_ResetError
-        self.VSL_ResetError.argtypes = [c_void_p]
+        self.lc.VSL_ResetError = lib.VSL_ResetError
+        self.lc.VSL_ResetError.argtypes = [c_void_p]
 
         #VSL_CursorVSM;
-        self.VSL_CursorVSM = lib.VSL_CursorVSM
-        self.VSL_CursorVSM.restype = POINTER(VSL_cursor)
-        self.VSL_CursorVSM.argtypes = [c_void_p, c_void_p, c_uint]
+        self.lc.VSL_CursorVSM = lib.VSL_CursorVSM
+        self.lc.VSL_CursorVSM.restype = POINTER(VSL_cursor)
+        self.lc.VSL_CursorVSM.argtypes = [c_void_p, c_void_p, c_uint]
 
         #VSL_CursorFile;
-        self.VSL_CursorFile = lib.VSL_CursorFile
-        self.VSL_CursorFile.restype = POINTER(VSL_cursor)
-        self.VSL_CursorFile.argtypes = [c_void_p, c_char_p, c_uint]
+        self.lc.VSL_CursorFile = lib.VSL_CursorFile
+        self.lc.VSL_CursorFile.restype = POINTER(VSL_cursor)
+        self.lc.VSL_CursorFile.argtypes = [c_void_p, c_char_p, c_uint]
 
         #VSL_DeleteCursor;
-        self.VSL_DeleteCursor = lib.VSL_DeleteCursor
-        self.VSL_DeleteCursor.argtypes = [c_void_p]
+        self.lc.VSL_DeleteCursor = lib.VSL_DeleteCursor
+        self.lc.VSL_DeleteCursor.argtypes = [c_void_p]
 
         #VSL_Next;
-        self.VSL_Next = lib.VSL_Next
-        self.VSL_Next.restype = c_int
-        self.VSL_Next.argtypes = [POINTER(VSL_cursor)]
+        self.lc.VSL_Next = lib.VSL_Next
+        self.lc.VSL_Next.restype = c_int
+        self.lc.VSL_Next.argtypes = [POINTER(VSL_cursor)]
 
         #VSL_Match;
-        self.VSL_Match = lib.VSL_Match
-        self.VSL_Match.restype = c_int
-        self.VSL_Match.argtypes = [c_void_p, POINTER(VSL_cursor)]
+        self.lc.VSL_Match = lib.VSL_Match
+        self.lc.VSL_Match.restype = c_int
+        self.lc.VSL_Match.argtypes = [c_void_p, POINTER(VSL_cursor)]
 
         #VSL_Print;
-        self.VSL_Print = lib.VSL_Print
-        self.VSL_Print.argtypes = [c_void_p, c_void_p, c_void_p]
+        self.lc.VSL_Print = lib.VSL_Print
+        self.lc.VSL_Print.argtypes = [c_void_p, c_void_p, c_void_p]
 
         #VSL_PrintTerse;
-        self.VSL_PrintTerse = lib.VSL_PrintTerse
-        self.VSL_PrintTerse.argtypes = [c_void_p, c_void_p, c_void_p]
+        self.lc.VSL_PrintTerse = lib.VSL_PrintTerse
+        self.lc.VSL_PrintTerse.argtypes = [c_void_p, c_void_p, c_void_p]
 
         #VSL_PrintAll;
-        self.VSL_PrintAll = lib.VSL_PrintAll
-        self.VSL_PrintAll.argtypes = [c_void_p, c_void_p, c_void_p]
+        self.lc.VSL_PrintAll = lib.VSL_PrintAll
+        self.lc.VSL_PrintAll.argtypes = [c_void_p, c_void_p, c_void_p]
 
         #VSL_PrintTransactions;
-        self.VSL_PrintTransactions = lib.VSL_PrintTransactions
-        self.VSL_PrintTransactions.argtypes = [c_void_p, POINTER(POINTER(VSL_transaction)), c_void_p]
+        self.lc.VSL_PrintTransactions = lib.VSL_PrintTransactions
+        self.lc.VSL_PrintTransactions.argtypes = [c_void_p, POINTER(POINTER(VSL_transaction)), c_void_p]
 
         #VSL_WriteOpen;
-        self.VSL_WriteOpen = lib.VSL_WriteOpen
-        self.VSL_WriteOpen.restype = c_void_p
-        self.VSL_WriteOpen.argtypes = [c_void_p, c_char_p, c_int, c_int]
+        self.lc.VSL_WriteOpen = lib.VSL_WriteOpen
+        self.lc.VSL_WriteOpen.restype = c_void_p
+        self.lc.VSL_WriteOpen.argtypes = [c_void_p, c_char_p, c_int, c_int]
 
         #VSL_Write;
-        self.VSL_Write = lib.VSL_Write
-        self.VSL_Write.argtypes = [c_void_p, c_void_p, c_void_p]
+        self.lc.VSL_Write = lib.VSL_Write
+        self.lc.VSL_Write.argtypes = [c_void_p, c_void_p, c_void_p]
 
         #VSL_WriteAll;
-        self.VSL_WriteAll = lib.VSL_WriteAll
-        self.VSL_WriteAll.argtypes = [c_void_p, c_void_p, c_void_p]
+        self.lc.VSL_WriteAll = lib.VSL_WriteAll
+        self.lc.VSL_WriteAll.argtypes = [c_void_p, c_void_p, c_void_p]
 
         #VSL_WriteTransactions;
-        self.VSL_WriteTransactions = lib.VSL_WriteTransactions
-        self.VSL_WriteTransactions.argtypes = [c_void_p, POINTER(POINTER(VSL_transaction)), c_void_p]
+        self.lc.VSL_WriteTransactions = lib.VSL_WriteTransactions
+        self.lc.VSL_WriteTransactions.argtypes = [c_void_p, POINTER(POINTER(VSL_transaction)), c_void_p]
 
         #VSLQ_New;
-        self.VSLQ_New = lib.VSLQ_New
-        self.VSLQ_New.restype = c_void_p
-        self.VSLQ_New.argtypes = [c_void_p, POINTER(POINTER(VSL_cursor)), c_int, c_char_p]
+        self.lc.VSLQ_New = lib.VSLQ_New
+        self.lc.VSLQ_New.restype = c_void_p
+        self.lc.VSLQ_New.argtypes = [c_void_p, POINTER(POINTER(VSL_cursor)), c_int, c_char_p]
 
         #VSLQ_Delete;
-        self.VSLQ_Delete = lib.VSLQ_Delete
-        self.VSLQ_Delete.argtypes = [POINTER(c_void_p)]
+        self.lc.VSLQ_Delete = lib.VSLQ_Delete
+        self.lc.VSLQ_Delete.argtypes = [POINTER(c_void_p)]
 
         #VSLQ_Dispatch;
-        self.VSLQ_Dispatch = lib.VSLQ_Dispatch
-        self.VSLQ_Dispatch.restype = c_int
-        self.VSLQ_Dispatch.argtypes = [c_void_p, VSLQ_dispatch_f, c_void_p]
+        self.lc.VSLQ_Dispatch = lib.VSLQ_Dispatch
+        self.lc.VSLQ_Dispatch.restype = c_int
+        self.lc.VSLQ_Dispatch.argtypes = [c_void_p, VSLQ_dispatch_f, c_void_p]
 
         #VSLQ_Flush;
-        self.VSLQ_Flush = lib.VSLQ_Flush
-        self.VSLQ_Flush.restype = c_int
-        self.VSLQ_Flush.argtypes = [c_void_p, VSLQ_dispatch_f, c_void_p]
+        self.lc.VSLQ_Flush = lib.VSLQ_Flush
+        self.lc.VSLQ_Flush.restype = c_int
+        self.lc.VSLQ_Flush.argtypes = [c_void_p, VSLQ_dispatch_f, c_void_p]
 
         #VSLQ_Name2Grouping;
-        self.VSLQ_Name2Grouping = lib.VSLQ_Name2Grouping
-        self.VSLQ_Name2Grouping.restype = c_int
-        self.VSLQ_Name2Grouping.argtypes = [c_char_p, c_int]
+        self.lc.VSLQ_Name2Grouping = lib.VSLQ_Name2Grouping
+        self.lc.VSLQ_Name2Grouping.restype = c_int
+        self.lc.VSLQ_Name2Grouping.argtypes = [c_char_p, c_int]
 
         #VSL_Glob2Tags;
-        self.VSL_Glob2Tags = lib.VSL_Glob2Tags
-        self.VSL_Glob2Tags.argtypes = [c_char_p, c_int, VSL_tagfind_f, c_void_p]
+        self.lc.VSL_Glob2Tags = lib.VSL_Glob2Tags
+        self.lc.VSL_Glob2Tags.argtypes = [c_char_p, c_int, VSL_tagfind_f, c_void_p]
 
         #VSL_List2Tags;
-        self.VSL_List2Tags = lib.VSL_List2Tags
-        self.VSL_List2Tags.argtypes = [c_char_p, c_int, VSL_tagfind_f, c_void_p]
+        self.lc.VSL_List2Tags = lib.VSL_List2Tags
+        self.lc.VSL_List2Tags.argtypes = [c_char_p, c_int, VSL_tagfind_f, c_void_p]
 
+        #VSM_N_Arg;
+        self.lc.VSM_N_Arg = lib.VSM_N_Arg
+        self.lc.VSM_N_Arg.restype = c_int
+        self.lc.VSM_N_Arg.argtypes = [c_void_p, c_char_p]
 
         #VSL_Check;
-        self.VSL_Check = lib.VSL_Check
-        self.VSL_Check.argtypes = [c_void_p, c_void_p]
+        self.lc.VSL_Check = lib.VSL_Check
+        self.lc.VSL_Check.argtypes = [c_void_p, c_void_p]
 
         #VSL_ResetCursor;
-        self.VSL_ResetCursor = lib.VSL_ResetCursor
-        self.VSL_ResetCursor.argtypes = [c_void_p]
+        self.lc.VSL_ResetCursor = lib.VSL_ResetCursor
+        self.lc.VSL_ResetCursor.argtypes = [c_void_p]
 
         ## Variables:
         #VSLQ_grouping;
         #VSL_tagflags;
 
         #LIBVARNISHAPI_1.4
-        if self.apiversion < 1.4:
+        if self.lc.apiversion < 1.4:
             return
         #VNUM;
         #VSLQ_SetCursor;
-        self.VSLQ_SetCursor = lib.VSLQ_SetCursor
-        self.VSLQ_SetCursor.argtypes = [c_void_p, POINTER(c_void_p)]
+        self.lc.VSLQ_SetCursor = lib.VSLQ_SetCursor
+        self.lc.VSLQ_SetCursor.argtypes = [c_void_p, POINTER(c_void_p)]
 
-        if hasattr(lib, "VSM_IsOpen"):
-            #VSM_IsOpen;
-            self.VSM_IsOpen = lib.VSM_IsOpen
-            self.VSM_IsOpen.argtypes = [c_void_p]
+        #VSM_IsOpen;
+        self.lc.VSM_IsOpen = lib.VSM_IsOpen
+        self.lc.VSM_IsOpen.argtypes = [c_void_p]
 
         #LIBVARNISHAPI_1.5
-        if self.apiversion < 1.5:
+        if self.lc.apiversion < 1.5:
             return
         #VUT_Error;
-        self.VUT_Error = lib.VUT_Error
-        self.VUT_Error.argtypes = [c_int, c_char_p]
+        self.lc.VUT_Error = lib.VUT_Error
+        self.lc.VUT_Error.argtypes = [c_int, c_char_p]
 
         #VUT_g_Arg;
-        #self.VUT_g_Arg = lib.VUT_g_Arg
-        #self.VUT_g_Arg.argtypes = [c_char_p]
+        self.lc.VUT_g_Arg = lib.VUT_g_Arg
+        self.lc.VUT_g_Arg.argtypes = [c_char_p]
 
         #VUT_Arg;
-        self.VUT_Arg = lib.VUT_Arg
-        self.VUT_Arg.argtypes = [c_int, c_char_p]
+        self.lc.VUT_Arg = lib.VUT_Arg
+        self.lc.VUT_Arg.argtypes = [c_int, c_char_p]
 
         #VUT_Setup;
-        self.VUT_Setup = lib.VUT_Setup
+        self.lc.VUT_Setup = lib.VUT_Setup
 
         #VUT_Init;
-        self.VUT_Init = lib.VUT_Init
-        self.VUT_Init.argtypes = [c_char_p, c_int, c_char_p, POINTER(vopt_spec)]
+        self.lc.VUT_Init = lib.VUT_Init
+        self.lc.VUT_Init.argtypes = [c_char_p]
 
         #VUT_Fini;
-        self.VUT_Fini = lib.VUT_Fini
+        self.lc.VUT_Fini = lib.VUT_Fini
 
         #VUT_Main;
-        self.VUT_Main = lib.VUT_Main
+        self.lc.VUT_Main = lib.VUT_Main
 
         #VUT;
         #VTIM_mono;
-        self.VTIM_mono = lib.VTIM_mono
-        self.VTIM_mono.restype = c_double
+        self.lc.VTIM_mono = lib.VTIM_mono
+        self.lc.VTIM_mono.restype = c_double
 
         #VTIM_real;
-        self.VTIM_real = lib.VTIM_real
-        self.VTIM_real.restype = c_double
+        self.lc.VTIM_real = lib.VTIM_real
+        self.lc.VTIM_real.restype = c_double
 
         #VTIM_sleep;
-        self.VTIM_sleep = lib.VTIM_sleep
-        self.VTIM_sleep.argtypes = [c_double]
+        self.lc.VTIM_sleep = lib.VTIM_sleep
+        self.lc.VTIM_sleep.argtypes = [c_double]
 
         #VSB_new;
-        self.VSB_new = lib.VSB_new
-        self.VSB_new.restype = c_void_p
-        self.VSB_new.argtypes = [c_void_p, c_char_p, c_int]
+        self.lc.VSB_new = lib.VSB_new
+        self.lc.VSB_new.restype = c_void_p
+        self.lc.VSB_new.argtypes = [c_void_p, c_char_p, c_int]
 
         #VSB_destroy;
-        self.VSB_destroy = lib.VSB_destroy
-        self.VSB_destroy.argtypes = [POINTER(c_void_p)]
+        self.lc.VSB_destroy = lib.VSB_destroy
+        self.lc.VSB_destroy.argtypes = [POINTER(c_void_p)]
 
         #VSB_error;
-        self.VSB_error = lib.VSB_error
-        self.VSB_error.argtypes = [c_void_p]
+        self.lc.VSB_error = lib.VSB_error
+        self.lc.VSB_error.argtypes = [c_void_p]
 
         #VSB_cat;
-        self.VSB_cat = lib.VSB_cat
-        self.VSB_cat.argtypes = [c_void_p, c_char_p]
+        self.lc.VSB_cat = lib.VSB_cat
+        self.lc.VSB_cat.argtypes = [c_void_p, c_char_p]
 
         #VSB_putc;
-        self.VSB_putc = lib.VSB_putc
-        self.VSB_putc.argtypes = [c_void_p, c_int]
+        self.lc.VSB_putc = lib.VSB_putc
+        self.lc.VSB_putc.argtypes = [c_void_p, c_int]
 
         #VSB_printf;
-        self.VSB_printf = lib.VSB_printf
-        self.VSB_printf.argtypes = [c_void_p, c_char_p]
+        self.lc.VSB_printf = lib.VSB_printf
+        self.lc.VSB_printf.argtypes = [c_void_p, c_char_p]
 
         #VSB_clear;
-        self.VSB_clear = lib.VSB_clear
-        self.VSB_clear.argtypes = [c_void_p]
+        self.lc.VSB_clear = lib.VSB_clear
+        self.lc.VSB_clear.argtypes = [c_void_p]
 
         #VSB_finish;
-        self.VSB_clear = lib.VSB_clear
-        self.VSB_clear.argtypes = [c_void_p]
+        self.lc.VSB_finish = lib.VSB_finish
+        self.lc.VSB_finish.argtypes = [c_void_p]
 
         #VSB_len;
-        self.VSB_len = lib.VSB_len
-        self.VSB_len.restype = c_long
-        self.VSB_len.argtypes = [c_void_p]
+        self.lc.VSB_len = lib.VSB_len
+        self.lc.VSB_len.restype = c_long
+        self.lc.VSB_len.argtypes = [c_void_p]
 
         #VSB_data;
-        self.VSB_data = lib.VSB_data
-        self.VSB_data.restype = c_char_p
-        self.VSB_data.argtypes = [c_void_p]
+        self.lc.VSB_data = lib.VSB_data
+        self.lc.VSB_data.restype = c_char_p
+        self.lc.VSB_data.argtypes = [c_void_p]
 
         #VAS_Fail;
-        self.VAS_Fail = lib.VAS_Fail
-        self.VAS_Fail.argtypes = [c_char_p, c_char_p, c_int, c_char_p, c_int]
+        self.lc.VAS_Fail = lib.VAS_Fail
+        self.lc.VAS_Fail.argtypes = [c_char_p, c_char_p, c_int, c_char_p, c_int]
 
         #VCS_Message;
-        self.VCS_Message = lib.VCS_Message
-        self.VCS_Message.argtypes = [c_char_p]
+        self.lc.VCS_Message = lib.VCS_Message
+        self.lc.VCS_Message.argtypes = [c_char_p]
 
         #LIBVARNISHAPI_1.6
-        if self.apiversion < 1.6:
+        if self.lc.apiversion < 1.6:
             return
 
         #VTIM_format
-        self.VTIM_format = lib.VTIM_format
-        self.VTIM_format.argtypes = [c_double, c_char_p]
+        self.lc.VTIM_format = lib.VTIM_format
+        self.lc.VTIM_format.argtypes = [c_double, c_char_p]
 
         #VSB_bcat
-        self.VSB_bcat = lib.VSB_bcat
-        self.VSB_bcat.restype = c_int
-        self.VSB_bcat.argtypes = [c_void_p, c_void_p, c_long]
+        self.lc.VSB_bcat = lib.VSB_bcat
+        self.lc.VSB_bcat.restype = c_int
+        self.lc.VSB_bcat.argtypes = [c_void_p, c_void_p, c_long]
 
         #VSB_quote
-        self.VSB_quote = lib.VSB_quote
-        self.VSB_quote.argtypes = [c_void_p, c_void_p, c_int, c_int]
+        self.lc.VSB_quote = lib.VSB_quote
+        self.lc.VSB_quote.argtypes = [c_void_p, c_void_p, c_int, c_int]
 
         #VSB_vprintf
-        self.VSB_vprintf = lib.VSB_vprintf
-        self.VSB_vprintf.restype = c_int
+        self.lc.VSB_vprintf = lib.VSB_vprintf
+        self.lc.VSB_vprintf.restype = c_int
 
         #VSB_delete
-        self.VSB_delete = lib.VSB_delete
-        self.VSB_delete.argtypes = [c_void_p]
+        self.lc.VSB_delete = lib.VSB_delete
+        self.lc.VSB_delete.argtypes = [c_void_p]
 
         #VSB_indent
-        self.VSB_indent = lib.VSB_indent
-        self.VSB_indent.argtypes = [c_void_p, c_int]
+        self.lc.VSB_indent = lib.VSB_indent
+        self.lc.VSB_indent.argtypes = [c_void_p, c_int]
 
         #VTIM_parse
-        self.VTIM_parse = lib.VTIM_parse
-        self.VTIM_parse.restype = c_double
-        self.VTIM_parse.argtypes = [c_char_p]
+        self.lc.VTIM_parse = lib.VTIM_parse
+        self.lc.VTIM_parse.restype = c_double
+        self.lc.VTIM_parse.argtypes = [c_char_p]
 
         #VTIM_timespec
-        self.VTIM_timespec = lib.VTIM_timespec
-        self.VTIM_timespec.restype = POINTER(timespec)
-        self.VTIM_timespec.argtypes = [c_double]
+        self.lc.VTIM_timespec = lib.VTIM_timespec
+        self.lc.VTIM_timespec.restype = POINTER(timespec)
+        self.lc.VTIM_timespec.argtypes = [c_double]
 
         #VTIM_timeval
-        self.VTIM_timeval = lib.VTIM_timeval
-        self.VTIM_timeval.restype = POINTER(timeval)
-        self.VTIM_timeval.argtypes = [c_double]
+        self.lc.VTIM_timeval = lib.VTIM_timeval
+        self.lc.VTIM_timeval.restype = POINTER(timeval)
+        self.lc.VTIM_timeval.argtypes = [c_double]
 
         #VCS_Message
-        self.VCS_Message = lib.VCS_Message
-        self.VCS_Message.argtypes = [c_char_p]
+        self.lc.VCS_Message = lib.VCS_Message
+        self.lc.VCS_Message.argtypes = [c_char_p]
 
-        #LIBVARNISHAPI_1.7
-        if self.apiversion < 1.7:
-            return
+class LIBVARNISHAPI20:
+    def __init__(self, lc):
+        self.lc = lc
+    
+    def run(self, lib):
+        if hasattr(lib, "VSM_Map"):
+            self.lc.apiversion = 2.0
 
-        #VSC_ChangeLevel;
-        self.VSC_ChangeLevel = lib.VSC_ChangeLevel
-        self.VSC_ChangeLevel.restype = c_void_p
-        self.VSC_ChangeLevel.argtypes = [c_void_p, c_int]
+        #	# vas.c
+        #		VAS_Fail;
+        self.lc.VAS_Fail = lib.VAS_Fail
+        self.lc.VAS_Fail.argtypes = [c_char_p, c_char_p, c_int, c_char_p, c_int]
+        
+        #		VAS_Fail_Func;
+        #
+        #	# vcli.c
+        #		VCLI_AuthResponse;
+        self.lc.VCLI_AuthResponse = lib.VCLI_AuthResponse
+        self.lc.VCLI_AuthResponse.argtypes = [c_int, c_char_p, c_int, c_char *65]
 
-        #VSM_invalid;
-        #VSM_valid;
-        #VSM_similar;
-        #VSM_Start;
-        #VSM_Destroy;
-        self.VSM_Destroy = lib.VSM_Destroy
-        self.VSM_Destroy.argtypes = [POINTER(c_void_p)]
+        #		VCLI_ReadResult;
+        self.lc.VCLI_ReadResult = lib.VCLI_ReadResult
+        self.lc.VCLI_ReadResult.argtypes = [c_int, POINTER(c_uint), POINTER(c_char_p), c_double]
 
-        #VSM_Map;
-        self.VSM_Map = lib.VSM_Map
-        self.VSM_Map.restype = c_int
-        self.VSM_Map.argtypes = [c_void_p, c_void_p]
+        #		VCLI_WriteResult;
+        self.lc.VCLI_WriteResult = lib.VCLI_WriteResult
+        self.lc.VCLI_WriteResult.argtypes = [c_int, c_uint, c_char_p]
 
-        #VSM_Unmap;
-        self.VSM_Unmap = lib.VSM_Unmap
-        self.VSM_Unmap.restype = c_int
-        self.VSM_Unmap.argtypes = [c_void_p, c_void_p]
+        #
+        #	# vcs.c
+        #		VCS_Message;
+        self.lc.VCS_Message = lib.VCS_Message
+        self.lc.VCS_Message.argtypes = [c_char_p]
 
-        #VSM_Refresh;
-        #VSM_Attach;
-        self.VSM_Attach = lib.VSM_Attach
-        self.VSM_Attach.restype = c_int
-        self.VSM_Attach.argtypes = [c_void_p, c_int]
+        #
+        #	# vsb.c
+        #		VSB_bcat;
+        self.lc.VSB_bcat = lib.VSB_bcat
+        self.lc.VSB_bcat.argtypes = [c_void_p, c_void_p, c_long]
 
-        #VSM_Status;
-        self.VSM_Status = lib.VSM_Status
-        self.VSM_Status.restype = c_uint
-        self.VSM_Status.argtypes = [c_void_p]
+        #		VSB_cat;
+        self.lc.VSB_cat = lib.VSB_cat
+        self.lc.VSB_cat.argtypes = [c_void_p, c_char_p]
 
-        #VSM_Arg;
-        self.VSM_Arg = lib.VSM_Arg
-        self.VSM_Arg.restype = c_int
-        self.VSM_Arg.argtypes = [c_void_p, c_char, c_char_p]
+        #		VSB_clear;
+        self.lc.VSB_clear = lib.VSB_clear
+        self.lc.VSB_clear.argtypes = [c_void_p]
 
-        #VSM_Dup;
-        self.VSM_Dup = lib.VSM_Dup
-        self.VSM_Dup.restype = c_char_p
-        self.VSM_Dup.argtypes = [c_void_p, c_char_p, c_char_p]
+        #		VSB_data;
+        self.lc.VSB_data = lib.VSB_data
+        self.lc.VSB_data.restype = c_char_p
+        self.lc.VSB_data.argtypes = [c_void_p]
 
-        #VSC_New;
-        self.VSC_New = lib.VSC_New
-        self.VSC_New.restype = c_void_p
+        #		VSB_delete;
+        self.lc.VSB_delete = lib.VSB_delete
+        self.lc.VSB_delete.argtypes = [c_void_p]
+
+        #		VSB_destroy;
+        self.lc.VSB_destroy = lib.VSB_destroy
+        self.lc.VSB_destroy.argtypes = [POINTER(c_void_p)]
+
+        #		VSB_error;
+        self.lc.VSB_error = lib.VSB_error
+        self.lc.VSB_error.argtypes = [c_void_p]
+
+        #		VSB_finish;
+        self.lc.VSB_finish = lib.VSB_finish
+        self.lc.VSB_finish.argtypes = [c_void_p]
+
+        #		VSB_indent;
+        self.lc.VSB_indent = lib.VSB_indent
+        self.lc.VSB_indent.argtypes = [c_void_p, c_int]
+
+        #		VSB_len;
+        self.lc.VSB_len = lib.VSB_len
+        self.lc.VSB_len.restype = c_long
+        self.lc.VSB_len.argtypes = [c_void_p]
+
+        #		VSB_new;
+        self.lc.VSB_new = lib.VSB_new
+        self.lc.VSB_new.restype = c_void_p
+        self.lc.VSB_new.argtypes = [c_void_p, c_char_p, c_int]
+
+        #		VSB_printf;
+        self.lc.VSB_printf = lib.VSB_printf
+
+        #		VSB_putc;
+        self.lc.VSB_putc = lib.VSB_putc
+        self.lc.VSB_putc.argtypes = [c_void_p, c_int]
+
+        #		VSB_quote;
+        self.lc.VSB_quote = lib.VSB_quote
+        self.lc.VSB_quote.argtypes = [c_void_p, c_void_p, c_int, c_int]
+
+        #		VSB_quote_pfx;
+        self.lc.VSB_quote_pfx = lib.VSB_quote_pfx
+        self.lc.VSB_quote_pfx.argtypes = [c_void_p, c_char_p, c_void_p, c_int, c_int]
+
+        #		VSB_vprintf;
+        self.lc.VSB_vprintf = lib.VSB_vprintf
+
+        ####################################################
+        #
+        #	# vsc.c
+        #		VSC_Arg;
+        self.lc.VSC_Arg = lib.VSC_Arg
+        self.lc.VSC_Arg.argtypes = [c_void_p, c_int, c_char_p]
+
+        #		VSC_ChangeLevel;
+        self.lc.VSC_ChangeLevel = lib.VSC_ChangeLevel
+        self.lc.VSC_ChangeLevel.restype = POINTER(VSC_level_desc)
+        self.lc.VSC_ChangeLevel.argtypes = [POINTER(VSC_level_desc), c_int]
+
+        #		VSC_Destroy;
+        self.lc.VSC_Destroy = lib.VSC_Destroy
+        self.lc.VSC_Destroy.argtypes = [POINTER(c_void_p), c_void_p]
+
+        #		VSC_Iter;
+        self.lc.VSC_Iter = lib.VSC_Iter
+        self.lc.VSC_Iter.argtypes = [c_void_p, c_void_p, VSC_iter_f17, c_void_p]
+
+        #		VSC_New;
+        self.lc.VSC_New = lib.VSC_New
+        self.lc.VSC_New.restype = c_void_p
+
+        #		VSC_State;
+        self.lc.VSC_State = lib.VSC_State
+        self.lc.VSC_State.argtypes = [c_void_p, VSC_new_f, VSC_destroy_f, c_void_p]
+
+        #
+        #	# vsl*.c
+        #		VSLQ_Delete;
+        self.lc.VSLQ_Delete = lib.VSLQ_Delete
+        self.lc.VSLQ_Delete.argtypes = [POINTER(c_void_p)]
+
+        #		VSLQ_Dispatch;
+        self.lc.VSLQ_Dispatch = lib.VSLQ_Dispatch
+        self.lc.VSLQ_Dispatch.argtypes = [c_void_p, VSLQ_dispatch_f, c_void_p]
+
+        #		VSLQ_Flush;
+        self.lc.VSLQ_Flush = lib.VSLQ_Flush
+        self.lc.VSLQ_Flush.argtypes = [c_void_p, VSLQ_dispatch_f, c_void_p]
+
+        #		VSLQ_Name2Grouping;
+        self.lc.VSLQ_Name2Grouping = lib.VSLQ_Name2Grouping
+        self.lc.VSLQ_Name2Grouping.argtypes = [c_char_p, c_int]
+
+        #		VSLQ_New;
+        self.lc.VSLQ_New = lib.VSLQ_New
+        self.lc.VSLQ_New.restype = c_void_p
+        self.lc.VSLQ_New.argtypes = [c_void_p, POINTER(POINTER(VSL_cursor)), c_int, c_char_p]
+
+        #		VSLQ_SetCursor;
+        self.lc.VSLQ_SetCursor = lib.VSLQ_SetCursor
+        self.lc.VSLQ_SetCursor.argtypes = [c_void_p, POINTER(c_void_p)]
+
+        #		VSLQ_grouping; (variables)
+        #		VSL_Arg;
+        self.lc.VSL_Arg = lib.VSL_Arg
+        self.lc.VSL_Arg.argtypes = [c_void_p, c_int, c_char_p]
+
+        #		VSL_Check;
+        self.lc.VSL_Check = lib.VSL_Check
+        self.lc.VSL_Check.argtypes = [c_void_p, c_void_p]
+
+        #		VSL_CursorFile;
+        self.lc.VSL_CursorFile = lib.VSL_CursorFile
+        self.lc.VSL_CursorFile.restype = POINTER(VSL_cursor)
+        self.lc.VSL_CursorFile.argtypes = [c_void_p, c_char_p, c_uint]
+
+        #		VSL_CursorVSM;
+        self.lc.VSL_CursorVSM = lib.VSL_CursorVSM
+        self.lc.VSL_CursorVSM.restype = POINTER(VSL_cursor)
+        self.lc.VSL_CursorVSM.argtypes = [c_void_p, c_void_p, c_uint]
+
+        #		VSL_Delete;
+        self.lc.VSL_Delete = lib.VSL_Delete
+        self.lc.VSL_Delete.argtypes = [c_void_p]
+
+        #		VSL_DeleteCursor;
+        self.lc.VSL_DeleteCursor = lib.VSL_DeleteCursor
+        self.lc.VSL_DeleteCursor.argtypes = [c_void_p]
+
+        #		VSL_Error;
+        self.lc.VSL_Error = lib.VSL_Error
+        self.lc.VSL_Error.restype = c_char_p
+        self.lc.VSL_Error.argtypes = [c_void_p]
+
+        #		VSL_Glob2Tags;
+        self.lc.VSL_Glob2Tags = lib.VSL_Glob2Tags
+        self.lc.VSL_Glob2Tags.argtypes = [c_char_p, c_int, VSL_tagfind_f, c_void_p]
+
+        #		VSL_List2Tags;
+        self.lc.VSL_List2Tags = lib.VSL_List2Tags
+        self.lc.VSL_List2Tags.argtypes = [c_char_p, c_int, VSL_tagfind_f, c_void_p]
+
+        #		VSL_Match;
+        self.lc.VSL_Match = lib.VSL_Match
+        self.lc.VSL_Match.argtypes = [c_void_p, POINTER(VSL_cursor)]
+
+        #		VSL_Name2Tag;
+        self.lc.VSL_Name2Tag = lib.VSL_Name2Tag
+        self.lc.VSL_Name2Tag.argtypes = [c_char_p, c_int]
+
+        #		VSL_New;
+        self.lc.VSL_New = lib.VSL_New
+        self.lc.VSL_New.restype = c_void_p
+
+        #		VSL_Next;
+        self.lc.VSL_Next = lib.VSL_Next
+        self.lc.VSL_Next.argtypes = [POINTER(VSL_cursor)]
+
+        #		VSL_Print;
+        self.lc.VSL_Print = lib.VSL_Print
+        self.lc.VSL_Print.argtypes = [c_void_p, c_void_p, c_void_p]
+
+        #		VSL_PrintAll;
+        self.lc.VSL_PrintAll = lib.VSL_PrintAll
+        self.lc.VSL_PrintAll.argtypes = [c_void_p, c_void_p, c_void_p]
+
+        #		VSL_PrintTerse;
+        self.lc.VSL_PrintTerse = lib.VSL_PrintTerse
+        self.lc.VSL_PrintTerse.argtypes = [c_void_p, c_void_p, c_void_p]
+
+        #		VSL_PrintTransactions;
+        self.lc.VSL_PrintTransactions = lib.VSL_PrintTransactions
+        self.lc.VSL_PrintTransactions.argtypes = [c_void_p, POINTER(POINTER(VSL_transaction)), c_void_p]
+
+        #		VSL_ResetCursor;
+        self.lc.VSL_ResetCursor = lib.VSL_ResetCursor
+        self.lc.VSL_ResetCursor.argtypes = [c_void_p]
+
+        #		VSL_ResetError;
+        self.lc.VSL_ResetError = lib.VSL_ResetError
+        self.lc.VSL_ResetError.argtypes = [c_void_p]
+
+        #		VSL_Write;
+        self.lc.VSL_Write = lib.VSL_Write
+        self.lc.VSL_Write.argtypes = [c_void_p, c_void_p, c_void_p]
+
+        #		VSL_WriteAll;
+        self.lc.VSL_WriteAll = lib.VSL_WriteAll
+        self.lc.VSL_WriteAll.argtypes = [c_void_p, c_void_p, c_void_p]
+
+        #		VSL_WriteOpen;
+        self.lc.VSL_WriteOpen = lib.VSL_WriteOpen
+        self.lc.VSL_WriteOpen.restype = c_void_p
+        self.lc.VSL_WriteOpen.argtypes = [c_void_p, c_char_p, c_int, c_int]
+
+        #		VSL_WriteTransactions;
+        self.lc.VSL_WriteTransactions = lib.VSL_WriteTransactions
+        self.lc.VSL_WriteTransactions.argtypes = [c_void_p, POINTER(POINTER(VSL_transaction)), c_void_p]
+
+        #		VSL_tagflags; (variables)
+        #		VSL_tags; (variables)
+        #
+        #	# vsm.c
+        #		VSM_Arg;
+        self.lc.VSM_Arg = lib.VSM_Arg
+        self.lc.VSM_Arg.argtypes = [c_void_p, c_char, c_char_p]
+
+        #		VSM_Attach;
+        self.lc.VSM_Attach = lib.VSM_Attach
+        self.lc.VSM_Attach.argtypes = [c_void_p, c_int]
+
+        #		VSM_Destroy;
+        self.lc.VSM_Destroy = lib.VSM_Destroy
+        self.lc.VSM_Destroy.argtypes = [POINTER(c_void_p)]
+
+        #		VSM_Dup;
+        self.lc.VSM_Dup = lib.VSM_Dup
+        self.lc.VSM_Dup.argtypes = [c_void_p, c_char_p, c_char_p]
+
+        #		VSM_Error;
+        self.lc.VSM_Error = lib.VSM_Error
+        self.lc.VSM_Error.restype = c_char_p
+        self.lc.VSM_Error.argtypes = [c_void_p]
+
+        #		VSM_Get;
+        self.lc.VSM_Get = lib.VSM_Get
+        self.lc.VSM_Get.argtypes = [c_void_p, POINTER(VSM_fantom), c_char_p, c_char_p]
+
+        #		VSM_Map;
+        self.lc.VSM_Map = lib.VSM_Map
+        self.lc.VSM_Map.argtypes = [c_void_p, POINTER(VSM_fantom)]
+
+        #		VSM_New;
+        self.lc.VSM_New = lib.VSM_New
+        self.lc.VSM_New.restype = c_void_p
+
+        #		VSM_ResetError;
+        self.lc.VSM_ResetError = lib.VSM_ResetError
+        self.lc.VSM_ResetError.argtypes = [c_void_p]
+
+        #		VSM_Status;
+        self.lc.VSM_Status = lib.VSM_Status
+        self.lc.VSM_Status.restype = c_uint
+        self.lc.VSM_Status.argtypes = [c_void_p]
+
+        #		VSM_StillValid;
+        self.lc.VSM_StillValid = lib.VSM_StillValid
+        self.lc.VSM_StillValid.restype = c_void_p
+        self.lc.VSM_StillValid.argtypes = [c_void_p, POINTER(VSM_fantom)]
+
+        #		VSM_Unmap;
+        self.lc.VSM_Unmap = lib.VSM_Unmap
+        self.lc.VSM_Unmap.argtypes = [c_void_p, POINTER(VSM_fantom)]
+
+        #		VSM__iter0;
+        self.lc.VSM__iter0 = lib.VSM__iter0
+        self.lc.VSM__iter0.argtypes = [c_void_p, POINTER(VSM_fantom)]
+
+        #		VSM__itern;
+        self.lc.VSM__itern = lib.VSM__itern
+        self.lc.VSM__itern.argtypes = [c_void_p, POINTER(VSM_fantom)]
+
+        #		VSM_invalid; (valiabls)
+        #		VSM_valid; (valiables)
+        #
+        #	# vtim.c
+        #		VTIM_format;
+        self.lc.VTIM_format = lib.VTIM_format
+        self.lc.VTIM_format.argtypes = [c_double, c_char_p]
+
+        #		VTIM_mono;
+        self.lc.VTIM_mono = lib.VTIM_mono
+        self.lc.VTIM_mono.restype = c_double
+
+        #		VTIM_parse;
+        self.lc.VTIM_parse = lib.VTIM_parse
+        self.lc.VTIM_parse.restype = c_double
+        self.lc.VTIM_parse.argtypes = [c_char_p]
+
+        #		VTIM_real;
+        self.lc.VTIM_real = lib.VTIM_real
+        self.lc.VTIM_real.restype = c_double
+
+        #		VTIM_sleep;
+        self.lc.VTIM_sleep = lib.VTIM_sleep
+        self.lc.VTIM_sleep.argtypes = [c_double]
+
+        #		VTIM_timespec;
+        self.lc.VTIM_timespec = lib.VTIM_timespec
+        self.lc.VTIM_timespec.restype = POINTER(timespec)
+        self.lc.VTIM_timespec.argtypes = [c_double]
+
+        #		VTIM_timeval;
+        self.lc.VTIM_timeval = lib.VTIM_timeval
+        self.lc.VTIM_timeval.restype = POINTER(timeval)
+        self.lc.VTIM_timeval.argtypes = [c_double]
+
+        #
+        #	# vut.c
+        #		VUT_Arg;
+        self.lc.VUT_Arg = lib.VUT_Arg
+        self.lc.VUT_Arg.argtypes = [POINTER(VUT), c_int, c_char_p]
+
+        #		VUT_Error;
+        self.lc.VUT_Error = lib.VUT_Error
+
+        #		VUT_Fini;
+        self.lc.VUT_Fini = lib.VUT_Fini
+        self.lc.VUT_Fini.argtypes = [POINTER(POINTER(VUT))]
+
+        #		VUT_Init;
+        self.lc.VUT_Init = lib.VUT_Init
+        self.lc.VUT_Init.restype = POINTER(VUT)
+        self.lc.VUT_Init.argtypes = [c_char_p, c_int, POINTER(c_char_p), POINTER(vopt_spec)]
+
+        #		VUT_Main;
+        self.lc.VUT_Main = lib.VUT_Main
+        self.lc.VUT_Main.argtypes = [POINTER(VUT)]
+
+        #		VUT_Setup;
+        self.lc.VUT_Setup = lib.VUT_Setup
+        self.lc.VUT_Setup.argtypes = [POINTER(VUT)]
+
+        #		VUT_Signal;
+        self.lc.VUT_Signal = lib.VUT_Signal
+        self.lc.VUT_Signal.argtypes = [VUT_sighandler_f]
+
+        #		VUT_Signaled;
+        self.lc.VUT_Signaled = lib.VUT_Signaled
+        self.lc.VUT_Signaled.argtypes = [POINTER(VUT), c_int]
+
+class LIBVARNISHAPI:
+    def __init__(self, lib):
+        #Check libvarnishapi version
+        if hasattr(lib, "VSM_Map"):
+            LIBVARNISHAPI20(self).run(lib)
+        else:
+            LIBVARNISHAPI10(self).run(lib)
 
 class VSLUtil:
 
@@ -1087,7 +1467,7 @@ class VarnishStat(VarnishAPI):
         if self.lva.apiversion >= 1.7:
             self.lva.VSC_Iter(self.vsc, self.vsm, VSC_iter_f17(self._getstat17), None)
         else:
-            self.lva.VSC_Iter(self.vsc, self.vsm, VSC_iter_f(self._getstat), None)
+            self.lva.VSC_Iter(self.vsm, None, VSC_iter_f(self._getstat), None)
         return self._buf
 
 
