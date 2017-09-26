@@ -1,7 +1,7 @@
 # coding: utf-8
 
 
-# Copyright (c) 2013-2016 Shohei Tanaka(@xcir)
+# Copyright (c) 2013-2017 Shohei Tanaka(@xcir)
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
 # SUCH DAMAGE.
 
 # https://github.com/xcir/python-varnishapi
-# v50.20
+# v52.21
 
 from ctypes import *
 import getopt
