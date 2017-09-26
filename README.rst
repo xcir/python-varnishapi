@@ -11,6 +11,7 @@ Connect to libvarnish api by ctypes
 :Date: 2017-09-26
 :Version: 52.21
 :Support Varnish Version: 4.0.x, 4.1.x 5.0.x 5.1.x 5.2.x
+:Check Varnish Version: 5.1.3 5.2.0
 :Check Python Version: 2.7.x, 3.4.x
 :Manual section: 3
 
