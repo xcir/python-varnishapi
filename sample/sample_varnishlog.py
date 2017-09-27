@@ -9,7 +9,7 @@ class SampleVarnishLog:
 		self.vap     = vap
 		while 1:
 			ret = self.vap.Dispatch(self.vapCallBack)
-			if 0 == ret:
+			if 0 >= ret:
 				time.sleep(0.5)
 		
 		
