@@ -1457,7 +1457,7 @@ class VarnishStat(VarnishAPI):
         if not bool(pt):
             return(0)
         val = pt[0].ptr[0]
-        key = pt[0].name
+        key = pt[0].name.decode("utf8", "replace")
         self._buf[key] = {'val': val, 'desc': pt[0].sdesc.decode("utf8", "replace")}
 
         return(0)
