@@ -1396,16 +1396,21 @@ class VarnishStat(VarnishAPI):
             self.__setArg(opt)
 
         if self.lva.apiversion >= 2.0:
+            self.vsc = self.lva.VSC_New();
             self.__Setup20()
         else:
             self.__Setup10()
+
+    def Fini(self):
+        if self.lva.apiversion >= 2.0:
+            self.lva.VSC_Destroy(byref(cast(self.vsc, c_void_p)), self.vsm)
+        VarnishAPI.Fini(self)
 
     def __Setup20(self):
         if self.lva.VSM_Attach(self.vsm, 2):
             self.error = "VSM: %s" % self.lva.VSM_Error(
                 self.vsm).decode("utf8", "replace").rstrip()
             return(0)
-        self.vsc = self.lva.VSC_New();
 
     def __Setup10(self):
         if self.lva.VSM_Open(self.vsm):
