@@ -159,7 +159,7 @@ VSL_tagfind_f = CFUNCTYPE(
 
 #typedef void *VSC_new_f(void *priv, const struct VSC_point *const pt);
 VSC_new_f = CFUNCTYPE(
-    None,
+    c_void_p,
     c_void_p,
     POINTER(VSC_point20)
 )
