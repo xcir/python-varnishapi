@@ -1615,82 +1615,88 @@ class VarnishLog(VarnishAPI):
 
         return(1)
 
-    def __cbMain(self, cb, priv=None):
-        self._cb = cb
-        self._priv = priv
-        if not self.vslq:
-            # Reconnect VSM
-            time.sleep(0.1)
-            if self.lva.VSM_Open(self.vsm):
-                self.lva.VSM_ResetError(self.vsm)
-                return(1)
-            c = self.lva.VSL_CursorVSM(
-                self.vsl, self.vsm,
-                self.defi.VSL_COPT_TAIL | self.defi.VSL_COPT_BATCH)
-            if not c:
-                self.lva.VSM_ResetError(self.vsm)
-                self.lva.VSM_Close(self.vsm)
-                return(1)
-            self.vslq = self.lva.VSLQ_New(
-                self.vsl, c, self.__g_arg, self.__q_arg)
-            self.error = 'Log reacquired'
-        i = self.lva.VSLQ_Dispatch(
-            self.vslq, VSLQ_dispatch_f(self._callBack), None)
-        return(i)
 
     def __Dispatch10(self, cb, priv=None):
-        i = self.__cbMain(cb, priv)
-        if i > -2:
-            return i
-        if not self.vsm:
-            return i
+        self._cb = cb
+        self._priv = priv
+        while True:
+            if not self.vslq:
+                # Reconnect VSM
+                time.sleep(0.1)
+                if self.lva.VSM_Open(self.vsm):
+                    self.lva.VSM_ResetError(self.vsm)
+                    return(1)
+                c = self.lva.VSL_CursorVSM(
+                    self.vsl, self.vsm,
+                    self.defi.VSL_COPT_TAIL | self.defi.VSL_COPT_BATCH)
+                if not c:
+                    self.lva.VSM_ResetError(self.vsm)
+                    self.lva.VSM_Close(self.vsm)
+                    return(1)
+                self.vslq = self.lva.VSLQ_New(
+                    self.vsl, c, self.__g_arg, self.__q_arg)
+                self.error = 'Log reacquired'
+            i = self.lva.VSLQ_Dispatch(
+                self.vslq, VSLQ_dispatch_f(self._callBack), None)
 
-        self.lva.VSLQ_Flush(self.vslq, VSLQ_dispatch_f(self._callBack), None)
-        self.lva.VSLQ_Delete(byref(cast(self.vslq, c_void_p)))
-        self.vslq = None
-        if i == -2:
-            self.error = "Log abandoned"
-            #self.lva.VSM_Destroy(POINTER(self.vsm))
-            self.lva.VSM_Close(self.vsm)
-        if i < -2:
-            self.error = "Log overrun"
-        return i
+            if i == 1:
+                continue
+            elif i > -2:
+                return i
+            if not self.vsm:
+                return i
+
+            self.lva.VSLQ_Flush(self.vslq, VSLQ_dispatch_f(self._callBack), None)
+            self.lva.VSLQ_Delete(byref(cast(self.vslq, c_void_p)))
+            self.vslq = None
+            if i == -2:
+                self.error = "Log abandoned"
+                #self.lva.VSM_Destroy(POINTER(self.vsm))
+                self.lva.VSM_Close(self.vsm)
+            if i < -2:
+                self.error = "Log overrun"
+            return i
 
     def __Dispatch20(self, cb, priv=None):
-        if self.vsm:
-            stat = self.lva.VSM_Status(self.vsm)
-            if stat & self.defi.VSM_WRK_RESTARTED:
+        self._cb = cb
+        self._priv = priv
+        while True:
+            if self.vsm:
+                stat = self.lva.VSM_Status(self.vsm)
+                if stat & self.defi.VSM_WRK_RESTARTED:
+                    if self.hascursor < 1:
+                        self.error = "Log abandoned"
+                        self.lva.VSLQ_SetCursor(self.vslq, None)
+                        self.hascursor = 0
                 if self.hascursor < 1:
-                    self.error = "Log abandoned"
-                    self.lva.VSLQ_SetCursor(self.vslq, None)
-                    self.hascursor = 0
-            if self.hascursor < 1:
-                time.sleep(0.1)
-                c = self.lva.VSL_CursorVSM(self.vsl, self.vsm, self.cursor_opt)
-                if c == None:
-                    self.lva.VSL_ResetError(self.vsl)
-                    return 0
-                if self.hascursor == 0:
-                    self.error = "Log reacquired"
-                self.hascursor = 1
-                self.lva.VSLQ_SetCursor(self.vslq, byref(cast(c, c_void_p)))
-        
-        
-        i = self.__cbMain(cb, priv)
-        
-        if i > -2:
-            return i
-        if not self.vsm:
-            return i
+                    time.sleep(0.1)
+                    c = self.lva.VSL_CursorVSM(self.vsl, self.vsm, self.cursor_opt)
+                    if c == None:
+                        self.lva.VSL_ResetError(self.vsl)
+                        return 0
+                    if self.hascursor == 0:
+                        self.error = "Log reacquired"
+                    self.hascursor = 1
+                    self.lva.VSLQ_SetCursor(self.vslq, byref(cast(c, c_void_p)))
+            
+            i = self.lva.VSLQ_Dispatch(
+                self.vslq, VSLQ_dispatch_f(self._callBack), None)
+            
+            if i == 1:
+                continue
+            elif i > -2:
+                return i
+            if not self.vsm:
+                return i
 
-        self.lva.VSLQ_Flush(self.vslq, VSLQ_dispatch_f(self._callBack), None)
-        if i == -2:
-            self.error = "Log abandoned"
-            self.hascursor = 0
-            self.lva.VSLQ_SetCursor(self.vslq, None)
-        if i < -2:
-            self.error = "Log overrun"
-        return i
+            self.lva.VSLQ_Flush(self.vslq, VSLQ_dispatch_f(self._callBack), None)
+            if i == -2:
+                self.error = "Log abandoned"
+                self.hascursor = 0
+                self.lva.VSLQ_SetCursor(self.vslq, None)
+            if i < -2:
+                self.error = "Log overrun"
+            return i
 
     def Dispatch(self, cb, priv=None):
         if self.lva.apiversion >= 2.0:
