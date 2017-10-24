@@ -1616,9 +1616,7 @@ class VarnishLog(VarnishAPI):
         return(1)
 
 
-    def __Dispatch10(self, cb, priv=None):
-        self._cb = cb
-        self._priv = priv
+    def __Dispatch10(self, groupcount):
         while True:
             if not self.vslq:
                 # Reconnect VSM
@@ -1636,12 +1634,21 @@ class VarnishLog(VarnishAPI):
                 self.vslq = self.lva.VSLQ_New(
                     self.vsl, c, self.__g_arg, self.__q_arg)
                 self.error = 'Log reacquired'
+
+            self._wrkcb = False
             i = self.lva.VSLQ_Dispatch(
                 self.vslq, VSLQ_dispatch_f(self._callBack), None)
 
             if i == 1:
-                continue
-            elif i > -2:
+                if self._groupcb and self._wrkcb:
+                    self._wrkcb = False
+                    self._groupcb(self, self._priv)
+                if groupcount != 1:
+                    if groupcount > 1:
+                        groupcount-=1
+                    continue
+
+            if i > -2:
                 return i
             if not self.vsm:
                 return i
@@ -1657,9 +1664,7 @@ class VarnishLog(VarnishAPI):
                 self.error = "Log overrun"
             return i
 
-    def __Dispatch20(self, cb, priv=None):
-        self._cb = cb
-        self._priv = priv
+    def __Dispatch20(self, groupcount):
         while True:
             if self.vsm:
                 stat = self.lva.VSM_Status(self.vsm)
@@ -1679,12 +1684,20 @@ class VarnishLog(VarnishAPI):
                     self.hascursor = 1
                     self.lva.VSLQ_SetCursor(self.vslq, byref(cast(c, c_void_p)))
             
+            self._wrkcb = False
             i = self.lva.VSLQ_Dispatch(
                 self.vslq, VSLQ_dispatch_f(self._callBack), None)
-            
+
             if i == 1:
-                continue
-            elif i > -2:
+                if self._groupcb and self._wrkcb:
+                    self._wrkcb = False
+                    self._groupcb(self, self._priv)
+                if groupcount != 1:
+                    if groupcount > 1:
+                        groupcount-=1
+                    continue
+
+            if i > -2:
                 return i
             if not self.vsm:
                 return i
@@ -1698,11 +1711,14 @@ class VarnishLog(VarnishAPI):
                 self.error = "Log overrun"
             return i
 
-    def Dispatch(self, cb, priv=None):
+    def Dispatch(self, cb, priv=None, groupcount=1, groupcb=None):
+        self._cb = cb
+        self._priv = priv
+        self._groupcb = groupcb
         if self.lva.apiversion >= 2.0:
-            return self.__Dispatch20(cb, priv)
+            return self.__Dispatch20(groupcount)
         else:
-            return self.__Dispatch10(cb, priv)
+            return self.__Dispatch10(groupcount)
 
     def Fini(self):
         if self.vslq:
@@ -1720,6 +1736,7 @@ class VarnishLog(VarnishAPI):
         return self.lva.VSLQ_Name2Grouping(arg, -1)
 
     def _callBack(self, vsl, pt, fo):
+        self._wrkcb = True
         idx = -1
         while 1:
             idx += 1
