@@ -1736,8 +1736,9 @@ class VarnishLog(VarnishAPI):
                 'vxid': tra.vxid,
                 'vxid_parent': tra.vxid_parent,
                 'reason': tra.reason,
+                'type': None,
             }
-
+            
             while 1:
                 i = self.lva.VSL_Next(tra.c)
                 if i < 0:
@@ -1747,16 +1748,17 @@ class VarnishLog(VarnishAPI):
                 if not self.lva.VSL_Match(self.vsl, tra.c):
                     continue
 
-                # decode vxid type ...
+                # decode length tag type(thread)...
                 ptr = tra.c[0].rec.ptr
                 cbd['length'] = ptr[0] & 0xffff
                 cbd['tag'] = self.VSL_TAG(ptr)
-                if ptr[1] & (1 << 30):
-                    cbd['type'] = 'c'
-                elif ptr[1] & (1 << 31):
-                    cbd['type'] = 'b'
-                else:
-                    cbd['type'] = '-'
+                if cbd['type'] is None:
+                    if ptr[1] & 0x40000000: #1<<30
+                        cbd['type'] = 'c'
+                    elif ptr[1] & 0x80000000: #1<<31
+                        cbd['type'] = 'b'
+                    else:
+                        cbd['type'] = '-'
                 cbd['isbin'] = self.VSL_tagflags[cbd['tag']] & self.defi.SLT_F_BINARY
                 isbin = cbd['isbin'] == self.defi.SLT_F_BINARY or not self.dataDecode
                 cbd['data'] = self.VSL_DATA(ptr, isbin)
