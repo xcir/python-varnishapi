@@ -1737,6 +1737,7 @@ class VarnishLog(VarnishAPI):
                 'vxid_parent': tra.vxid_parent,
                 'reason': tra.reason,
                 'type': None,
+                'transaction_type': tra.type,
             }
             
             while 1:
