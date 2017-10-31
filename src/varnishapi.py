@@ -1635,20 +1635,14 @@ class VarnishLog(VarnishAPI):
                     self.vsl, c, self.__g_arg, self.__q_arg)
                 self.error = 'Log reacquired'
 
-            self._wrkcb = False
             i = self.lva.VSLQ_Dispatch(
                 self.vslq, VSLQ_dispatch_f(self._callBack), None)
 
-            if i == 1:
-                if self._groupcb and self._wrkcb:
-                    self._wrkcb = False
-                    self._groupcb(self, self._priv)
-                if groupcount != 1:
-                    if groupcount > 1:
-                        groupcount-=1
-                    continue
-
-            if i > -2:
+            if i == 1 and groupcount != 1:
+               if groupcount > 1:
+                   groupcount-=1
+               continue
+            elif i > -2:
                 return i
             if not self.vsm:
                 return i
@@ -1684,20 +1678,14 @@ class VarnishLog(VarnishAPI):
                     self.hascursor = 1
                     self.lva.VSLQ_SetCursor(self.vslq, byref(cast(c, c_void_p)))
             
-            self._wrkcb = False
             i = self.lva.VSLQ_Dispatch(
                 self.vslq, VSLQ_dispatch_f(self._callBack), None)
 
-            if i == 1:
-                if self._groupcb and self._wrkcb:
-                    self._wrkcb = False
-                    self._groupcb(self, self._priv)
-                if groupcount != 1:
-                    if groupcount > 1:
-                        groupcount-=1
-                    continue
-
-            if i > -2:
+            if i == 1 and groupcount != 1:
+                if groupcount > 1:
+                    groupcount-=1
+                continue
+            elif i > -2:
                 return i
             if not self.vsm:
                 return i
@@ -1736,7 +1724,6 @@ class VarnishLog(VarnishAPI):
         return self.lva.VSLQ_Name2Grouping(arg, -1)
 
     def _callBack(self, vsl, pt, fo):
-        self._wrkcb = True
         idx = -1
         while 1:
             idx += 1
@@ -1776,4 +1763,7 @@ class VarnishLog(VarnishAPI):
 
                 if self._cb:
                     self._cb(self, cbd, self._priv)
+        if self._groupcb:
+            self._groupcb(self, self._priv)
+
         return(0)
