@@ -16,8 +16,14 @@ class SampleVarnishLog:
 			vap.defi.VSL_t_bereq : 'bereq',
 			vap.defi.VSL_t_raw : 'raw',
 		}
+		arg = {
+			'cb' : self.vapLineCallBack,
+			'vxidcb' : self.vapVxidCallBack,
+			'groupcb' : self.vapGroupCallBack,
+			'groupcount' : 0,
+		}
 		while 1:
-			ret = self.vap.Dispatch(self.vapLineCallBack,None,0,self.vapVxidCallBack,self.vapGroupCallBack)
+			ret = self.vap.Dispatch(**arg)
 			if 0 >= ret:
 				time.sleep(0.5)
 		
