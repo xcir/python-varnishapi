@@ -1699,10 +1699,11 @@ class VarnishLog(VarnishAPI):
                 self.error = "Log overrun"
             return i
 
-    def Dispatch(self, cb, priv=None, groupcount=1, groupcb=None):
+    def Dispatch(self, cb=None, priv=None, groupcount=1, vxidcb=None, groupcb=None):
         self._cb = cb
-        self._priv = priv
+        self._vxidcb = vxidcb
         self._groupcb = groupcb
+        self._priv = priv
         if self.lva.apiversion >= 2.0:
             return self.__Dispatch20(groupcount)
         else:
@@ -1730,6 +1731,7 @@ class VarnishLog(VarnishAPI):
             t = pt[idx]
             if not bool(t):
                 break
+
             tra = t[0]
             cbd = {
                 'level': tra.level,
@@ -1739,7 +1741,6 @@ class VarnishLog(VarnishAPI):
                 'type': None,
                 'transaction_type': tra.type,
             }
-            
             while 1:
                 i = self.lva.VSL_Next(tra.c)
                 if i < 0:
@@ -1764,8 +1765,11 @@ class VarnishLog(VarnishAPI):
                 isbin = cbd['isbin'] == self.defi.SLT_F_BINARY or not self.dataDecode
                 cbd['data'] = self.VSL_DATA(ptr, isbin)
 
-                if self._cb:
+                if self._cb is not None:
                     self._cb(self, cbd, self._priv)
+            if self._vxidcb is not None:
+                self._vxidcb(self, self._priv)
+
         if self._groupcb:
             self._groupcb(self, self._priv)
 
