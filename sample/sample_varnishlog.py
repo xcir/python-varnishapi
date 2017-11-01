@@ -20,7 +20,7 @@ class SampleVarnishLog:
 			'cb' : self.vapLineCallBack,
 			'vxidcb' : self.vapVxidCallBack,
 			'groupcb' : self.vapGroupCallBack,
-			'groupcount' : 0,
+			'maxread' : 0,
 		}
 		while 1:
 			ret = self.vap.Dispatch(**arg)

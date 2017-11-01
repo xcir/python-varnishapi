@@ -1616,7 +1616,7 @@ class VarnishLog(VarnishAPI):
         return(1)
 
 
-    def __Dispatch10(self, groupcount):
+    def __Dispatch10(self, maxread):
         while True:
             if not self.vslq:
                 # Reconnect VSM
@@ -1638,9 +1638,9 @@ class VarnishLog(VarnishAPI):
             i = self.lva.VSLQ_Dispatch(
                 self.vslq, VSLQ_dispatch_f(self._callBack), None)
 
-            if i == 1 and groupcount != 1:
-               if groupcount > 1:
-                   groupcount-=1
+            if i == 1 and maxread != 1:
+               if maxread > 1:
+                   maxread-=1
                continue
             elif i > -2:
                 return i
@@ -1658,7 +1658,7 @@ class VarnishLog(VarnishAPI):
                 self.error = "Log overrun"
             return i
 
-    def __Dispatch20(self, groupcount):
+    def __Dispatch20(self, maxread):
         while True:
             if self.vsm:
                 stat = self.lva.VSM_Status(self.vsm)
@@ -1681,9 +1681,9 @@ class VarnishLog(VarnishAPI):
             i = self.lva.VSLQ_Dispatch(
                 self.vslq, VSLQ_dispatch_f(self._callBack), None)
 
-            if i == 1 and groupcount != 1:
-                if groupcount > 1:
-                    groupcount-=1
+            if i == 1 and maxread != 1:
+                if maxread > 1:
+                    maxread-=1
                 continue
             elif i > -2:
                 return i
@@ -1699,15 +1699,15 @@ class VarnishLog(VarnishAPI):
                 self.error = "Log overrun"
             return i
 
-    def Dispatch(self, cb=None, priv=None, groupcount=1, vxidcb=None, groupcb=None):
+    def Dispatch(self, cb=None, priv=None, maxread=1, vxidcb=None, groupcb=None):
         self._cb = cb
         self._vxidcb = vxidcb
         self._groupcb = groupcb
         self._priv = priv
         if self.lva.apiversion >= 2.0:
-            return self.__Dispatch20(groupcount)
+            return self.__Dispatch20(maxread)
         else:
-            return self.__Dispatch10(groupcount)
+            return self.__Dispatch10(maxread)
 
     def Fini(self):
         if self.vslq:
