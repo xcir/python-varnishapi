@@ -30,6 +30,7 @@ class SampleVarnishLog:
 		
 	def vapGroupCallBack(self,vap, priv):
 		print("-"*100)
+
 	def vapVxidCallBack(self,vap, priv):
 		trx_type    = self.headline['transaction_type']
 		vxid        = self.headline['vxid']
