@@ -8,8 +8,8 @@ Connect to libvarnish api by ctypes
 ------------------------------------
 
 :Author: Shohei Tanaka(@xcir)
-:Date: 2017-10-22
-:Version: 52.22
+:Date: 2017-11-08
+:Version: 52.23
 :Support Varnish Version: 4.0.x, 4.1.x 5.0.x 5.1.x 5.2.x
 :Check Varnish Version: 5.1.3 5.2.0
 :Check Python Version: 2.7.x, 3.4.x
@@ -439,7 +439,7 @@ Description
 
 HISTORY
 ===========
-trunk: Enhance perfomance. add some feature in dispatch(). add transaction_type in callbackdata(cbd)
+Version 52.23: Enhance perfomance. add some feature in dispatch(). add transaction_type in callbackdata(cbd)
 
 Version 52.22: Fix VSC/varnishstat bug.(fix declare, add fini(I mis-deleted...) p-r #71,72 thanks ehocdet). Fix key varnishstat's decode for python3.
 

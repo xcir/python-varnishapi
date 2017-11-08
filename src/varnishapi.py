@@ -26,7 +26,7 @@
 # SUCH DAMAGE.
 
 # https://github.com/xcir/python-varnishapi
-# v52.22
+# v52.23
 
 from ctypes import *
 import getopt
