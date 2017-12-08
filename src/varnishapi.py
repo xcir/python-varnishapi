@@ -1310,9 +1310,6 @@ class VarnishAPI:
         self.lib = cdll[sopath]
         self.lva = LIBVARNISHAPI(self.lib)
         self.defi = VarnishAPIDefine40()
-        self._cb = None
-        self.vsm = self.lva.VSM_New()
-        self.d_opt = 0
 
         VSLTAGS = c_char_p * 256
         self.VSL_tags = []
@@ -1352,6 +1349,13 @@ class VarnishAPI:
             data = string_at(ptr, length + 8)[8:-1].decode("utf8", "replace")
         return data
 
+class VarnishVSM(VarnishAPI):
+
+    def __init__(self, sopath='libvarnishapi.so.1'):
+        VarnishAPI.__init__(self, sopath)
+        self.vsm = self.lva.VSM_New()
+        self.d_opt = 0
+
     def ArgDefault(self, op, arg):
         if self.lva.apiversion >= 2.0:
             if op == "n":
@@ -1387,10 +1391,10 @@ class VarnishAPI:
                 self.vsm = 0
 
 
-class VarnishStat(VarnishAPI):
+class VarnishStat(VarnishVSM):
 
     def __init__(self, opt='', sopath='libvarnishapi.so.1'):
-        VarnishAPI.__init__(self, sopath)
+        VarnishVSM.__init__(self, sopath)
         self.name = ''
         if len(opt) > 0:
             self.__setArg(opt)
@@ -1404,7 +1408,7 @@ class VarnishStat(VarnishAPI):
     def Fini(self):
         if self.lva.apiversion >= 2.0:
             self.lva.VSC_Destroy(byref(cast(self.vsc, c_void_p)), self.vsm)
-        VarnishAPI.Fini(self)
+        VarnishVSM.Fini(self)
 
     def __Setup20(self):
         if self.lva.VSM_Attach(self.vsm, 2):
@@ -1434,7 +1438,7 @@ class VarnishStat(VarnishAPI):
 
     def __Arg(self, op, arg):
         # default
-        i = VarnishAPI.ArgDefault(self, op, arg)
+        i = VarnishVSM.ArgDefault(self, op, arg)
         if i is not None:
             return(i)
 
@@ -1476,10 +1480,10 @@ class VarnishStat(VarnishAPI):
         return self._buf
 
 
-class VarnishLog(VarnishAPI):
+class VarnishLog(VarnishVSM):
 
     def __init__(self, opt='', sopath='libvarnishapi.so.1', dataDecode=True):
-        VarnishAPI.__init__(self, sopath)
+        VarnishVSM.__init__(self, sopath)
 
         self.vut = VSLUtil()
         self.vsl = self.lva.VSL_New()
@@ -1489,6 +1493,7 @@ class VarnishLog(VarnishAPI):
         self.__r_arg = 0
         self.name = ''
         self.dataDecode = dataDecode
+        self._cb = None
 
         if len(opt) > 0:
             self.__setArg(opt)
@@ -1521,7 +1526,7 @@ class VarnishLog(VarnishAPI):
         return(1)
 
     def __Arg(self, op, arg):
-        i = VarnishAPI.ArgDefault(self, op, arg)
+        i = VarnishVSM.ArgDefault(self, op, arg)
         if i is not None:
             return(i)
 
@@ -1706,7 +1711,7 @@ class VarnishLog(VarnishAPI):
         if self.vsl:
             self.lva.VSL_Delete(self.vsl)
             self.vsl = 0
-        VarnishAPI.Fini(self)
+        VarnishVSM.Fini(self)
 
     def __VSL_Arg(self, opt, arg='\0'):
         return self.lva.VSL_Arg(self.vsl, ord(opt), arg)
