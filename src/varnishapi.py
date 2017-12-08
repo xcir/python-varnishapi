@@ -1492,6 +1492,10 @@ class VarnishLog(VarnishAPI):
 
         if len(opt) > 0:
             self.__setArg(opt)
+        if self.d_opt:
+            self.cursor_opt = self.defi.VSL_COPT_TAILSTOP | self.defi.VSL_COPT_BATCH
+        else:
+            self.cursor_opt = self.defi.VSL_COPT_TAIL | self.defi.VSL_COPT_BATCH
             
         if self.lva.apiversion >= 2.0:
             self.__Setup20()
@@ -1568,13 +1572,7 @@ class VarnishLog(VarnishAPI):
                 return(0)
             #self.name = self.lva.VSM_Name(self.vsm)
 
-            if self.d_opt:
-                self.cursor_opt = self.defi.VSL_COPT_TAILSTOP | self.defi.VSL_COPT_BATCH
-            else:
-                self.cursor_opt = self.defi.VSL_COPT_TAIL | self.defi.VSL_COPT_BATCH
-
-            c = self.lva.VSL_CursorVSM(
-                self.vsl, self.vsm, self.cursor_opt)
+            c = self.lva.VSL_CursorVSM(self.vsl, self.vsm, self.cursor_opt)
                 
             self.lva.VSLQ_SetCursor(self.vslq, byref(cast(c, c_void_p)))
             self.lva.VSL_ResetError(self.vsl)
@@ -1595,13 +1593,7 @@ class VarnishLog(VarnishAPI):
                 return(0)
             self.name = self.lva.VSM_Name(self.vsm)
 
-            if self.d_opt:
-                tail = self.defi.VSL_COPT_TAILSTOP
-            else:
-                tail = self.defi.VSL_COPT_TAIL
-
-            c = self.lva.VSL_CursorVSM(
-                self.vsl, self.vsm, tail | self.defi.VSL_COPT_BATCH)
+            c = self.lva.VSL_CursorVSM(self.vsl, self.vsm, self.cursor_opt)
 
         if not c:
             self.error = "Can't open log (%s)" % self.lva.VSL_Error(self.vsl).decode("utf8", "replace")
@@ -1624,9 +1616,7 @@ class VarnishLog(VarnishAPI):
                 if self.lva.VSM_Open(self.vsm):
                     self.lva.VSM_ResetError(self.vsm)
                     return(1)
-                c = self.lva.VSL_CursorVSM(
-                    self.vsl, self.vsm,
-                    self.defi.VSL_COPT_TAIL | self.defi.VSL_COPT_BATCH)
+                c = self.lva.VSL_CursorVSM(self.vsl, self.vsm, self.cursor_opt)
                 if not c:
                     self.lva.VSM_ResetError(self.vsm)
                     self.lva.VSM_Close(self.vsm)
