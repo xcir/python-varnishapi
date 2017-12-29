@@ -1434,10 +1434,10 @@ class VarnishVUT(Thread, VarnishAPI):
 
 class VarnishLogVUT(VarnishVUT):
     def __init__(self,
-                 argc='VarnishVUTproc',
-                 opt='',
+                 progname='VarnishVUTproc',
+                 opt=[],
                  sopath='libvarnishapi.so.1', dataDecode=True):
-        VarnishVUT.__init__(self,argc,opt,sopath)
+        VarnishVUT.__init__(self, progname, opt, sopath)
         self.vut[0].dispatch_f = VSLQ_dispatch_f(self._callBack)
         self.util = VSLUtil()
         self.dataDecode = dataDecode
