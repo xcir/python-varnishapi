@@ -51,7 +51,7 @@ class SampleVarnishLog:
 		isbin       = cbd['isbin']
 		length      = cbd['length']
 		t_tag = vap.VSL_tags[tag]
-		var   = vap.vut.tag2VarName(t_tag,data)
+		var   = vap.util.tag2VarName(t_tag,data)
 		if self.headline is None:
 			self.headline = cbd
 

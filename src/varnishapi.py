@@ -1593,6 +1593,7 @@ class VarnishLog(VarnishVSM):
         VarnishVSM.__init__(self, sopath)
 
         self.vut = VSLUtil()
+        self.util = self.vut
         self.vsl = self.lva.VSL_New()
         self.vslq = None
         self.__g_arg = 0
