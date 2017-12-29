@@ -214,6 +214,9 @@ Example
 VarnishLog class
 ---------------------------------------
 
+This class is legacy.(using VSM)
+I recommend using VarnishLogVUT.
+
 VarnishLog.__init__
 -----------------------
 
