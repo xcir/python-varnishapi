@@ -1406,7 +1406,6 @@ class VarnishVUT(Thread, VarnishAPI):
         if len(opt) > 0:
             self.__setArg(opt)
         self.lva.VUT_Setup(self.vut)
-        self.vut[0].dispatch_f = VSLQ_dispatch_f(self._callBack)
 
     def run(self):
         self.lva.VUT_Main(self.vut)
@@ -1431,6 +1430,76 @@ class VarnishVUT(Thread, VarnishAPI):
 
     def stop(self):
         self.vut[0].sigint = 1
+
+
+class VarnishLogVUT(VarnishVUT):
+    def __init__(self,
+                 argc='VarnishVUTproc',
+                 opt='',
+                 sopath='libvarnishapi.so.1', dataDecode=True):
+        VarnishVUT.__init__(self,argc,opt,sopath)
+        self.vut[0].dispatch_f = VSLQ_dispatch_f(self._callBack)
+        self.util = VSLUtil()
+        self.dataDecode = dataDecode
+
+    def Dispatch(self, cb=None, priv=None, maxread=1, vxidcb=None, groupcb=None):
+        self._cb = cb
+        self._vxidcb = vxidcb
+        self._groupcb = groupcb
+        self._priv = priv
+        self.start()
+
+    def _callBack(self, vsl, pt, fo):
+        idx = -1
+        while 1:
+            idx += 1
+            t = pt[idx]
+            if not bool(t):
+                break
+
+            tra = t[0]
+            cbd = {
+                'level': tra.level,
+                'vxid': tra.vxid,
+                'vxid_parent': tra.vxid_parent,
+                'reason': tra.reason,
+                'type': None,
+                'transaction_type': tra.type,
+            }
+            while 1:
+                i = self.lva.VSL_Next(tra.c)
+                if i < 0:
+                    return (i)
+                if i == 0:
+                    break
+                if not self.lva.VSL_Match(self.vut[0].vsl, tra.c):
+                    continue
+
+                # decode length tag type(thread)...
+                ptr = tra.c[0].rec.ptr
+                cbd['length'] = ptr[0] & 0xffff
+                cbd['tag'] = self.VSL_TAG(ptr)
+                if cbd['type'] is None:
+                    if ptr[1] & 0x40000000: #1<<30
+                        cbd['type'] = 'c'
+                    elif ptr[1] & 0x80000000: #1<<31
+                        cbd['type'] = 'b'
+                    else:
+                        cbd['type'] = '-'
+                cbd['isbin'] = self.VSL_tagflags[cbd['tag']] & self.defi.SLT_F_BINARY
+                isbin = cbd['isbin'] == self.defi.SLT_F_BINARY or not self.dataDecode
+                cbd['data'] = self.VSL_DATA(ptr, isbin)
+
+                if self._cb is not None:
+                    self._cb(self, cbd, self._priv)
+            if self._vxidcb is not None:
+                self._vxidcb(self, self._priv)
+
+        if self._groupcb:
+            self._groupcb(self, self._priv)
+
+        return(0)
+
 
 class VarnishStat(VarnishVSM):
 
@@ -1519,73 +1588,6 @@ class VarnishStat(VarnishVSM):
         else:
             self.lva.VSC_Iter(self.vsm, None, VSC_iter_f(self._getstat10), None)
         return self._buf
-
-class VarnishLogVUT(VarnishVUT):
-    def __init__(self,
-                 argc='VarnishVUTproc',
-                 opt='',
-                 sopath='libvarnishapi.so.1', dataDecode=True):
-        VarnishVUT.__init__(self,argc,opt,sopath)
-        self.util = VSLUtil()
-        self.dataDecode = dataDecode
-
-    def Dispatch(self, cb=None, priv=None, maxread=1, vxidcb=None, groupcb=None):
-        self._cb = cb
-        self._vxidcb = vxidcb
-        self._groupcb = groupcb
-        self._priv = priv
-        self.start()
-
-    def _callBack(self, vsl, pt, fo):
-        idx = -1
-        while 1:
-            idx += 1
-            t = pt[idx]
-            if not bool(t):
-                break
-
-            tra = t[0]
-            cbd = {
-                'level': tra.level,
-                'vxid': tra.vxid,
-                'vxid_parent': tra.vxid_parent,
-                'reason': tra.reason,
-                'type': None,
-                'transaction_type': tra.type,
-            }
-            while 1:
-                i = self.lva.VSL_Next(tra.c)
-                if i < 0:
-                    return (i)
-                if i == 0:
-                    break
-                if not self.lva.VSL_Match(self.vut[0].vsl, tra.c):
-                    continue
-
-                # decode length tag type(thread)...
-                ptr = tra.c[0].rec.ptr
-                cbd['length'] = ptr[0] & 0xffff
-                cbd['tag'] = self.VSL_TAG(ptr)
-                if cbd['type'] is None:
-                    if ptr[1] & 0x40000000: #1<<30
-                        cbd['type'] = 'c'
-                    elif ptr[1] & 0x80000000: #1<<31
-                        cbd['type'] = 'b'
-                    else:
-                        cbd['type'] = '-'
-                cbd['isbin'] = self.VSL_tagflags[cbd['tag']] & self.defi.SLT_F_BINARY
-                isbin = cbd['isbin'] == self.defi.SLT_F_BINARY or not self.dataDecode
-                cbd['data'] = self.VSL_DATA(ptr, isbin)
-
-                if self._cb is not None:
-                    self._cb(self, cbd, self._priv)
-            if self._vxidcb is not None:
-                self._vxidcb(self, self._priv)
-
-        if self._groupcb:
-            self._groupcb(self, self._priv)
-
-        return(0)
 
 class VarnishLog(VarnishVSM):
 
