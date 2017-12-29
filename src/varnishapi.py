@@ -31,6 +31,7 @@
 from ctypes import *
 import getopt
 import time
+from threading import Thread
 
 
 
@@ -245,9 +246,6 @@ class vopt_spec (Structure):
         ("vopt_usage" , POINTER(c_char_p)),   #const char    **vopt_usage;
 
     ]
-
-
-
 
 
 class VarnishAPIDefine40:
@@ -1392,21 +1390,23 @@ class VarnishVSM(VarnishAPI):
                 self.vsm = 0
 
 
-class VarnishVUT(VarnishAPI):
+
+
+class VarnishVUT(Thread, VarnishAPI):
     def __init__(self,
-                 argc='VarnishVUTproc',
-                 opt='',
+                 progname='VarnishVUTproc',
+                 opt=[],
                  sopath='libvarnishapi.so.1'):
+
+        Thread.__init__(self)
         VarnishAPI.__init__(self, sopath)
+        
         self.vopt_spec = vopt_spec()
-        self.vut = self.lva.VUT_Init(argc, 0, byref(cast('',c_char_p)), self.vopt_spec)
+        self.vut = self.lva.VUT_Init(progname, 0, byref(cast('',c_char_p)), self.vopt_spec)
         if len(opt) > 0:
             self.__setArg(opt)
         self.lva.VUT_Setup(self.vut)
         self.vut[0].dispatch_f = VSLQ_dispatch_f(self._callBack)
-
-    def stop(self):
-        self.vut[0].sigint = 1
 
     def run(self):
         self.lva.VUT_Main(self.vut)
@@ -1417,13 +1417,20 @@ class VarnishVUT(VarnishAPI):
         opts, args = getopt.getopt(opt, "bcCdx:X:r:q:N:n:I:i:g:k:t:T:")
         error = 0
         for o in opts:
+            if o[0][0] != '-':
+                continue
+            arg = ""
+            if o[1][0] != '-':
+                arg = o[1].encode("utf8", "replace")
             op = o[0].lstrip('-')
-            arg = o[1].encode("utf8", "replace")
             self.lva.VUT_Arg(self.vut, ord(op[0]), arg)
 
-    def _callBack(self, vsl, pt, fo):
-        # not implemented
-        return(0)
+    def Fini(self):
+        self.stop()
+        self.join()
+
+    def stop(self):
+        self.vut[0].sigint = 1
 
 class VarnishStat(VarnishVSM):
 
@@ -1513,6 +1520,72 @@ class VarnishStat(VarnishVSM):
             self.lva.VSC_Iter(self.vsm, None, VSC_iter_f(self._getstat10), None)
         return self._buf
 
+class VarnishLogVUT(VarnishVUT):
+    def __init__(self,
+                 argc='VarnishVUTproc',
+                 opt='',
+                 sopath='libvarnishapi.so.1', dataDecode=True):
+        VarnishVUT.__init__(self,argc,opt,sopath)
+        self.util = VSLUtil()
+        self.dataDecode = dataDecode
+
+    def Dispatch(self, cb=None, priv=None, maxread=1, vxidcb=None, groupcb=None):
+        self._cb = cb
+        self._vxidcb = vxidcb
+        self._groupcb = groupcb
+        self._priv = priv
+        self.start()
+
+    def _callBack(self, vsl, pt, fo):
+        idx = -1
+        while 1:
+            idx += 1
+            t = pt[idx]
+            if not bool(t):
+                break
+
+            tra = t[0]
+            cbd = {
+                'level': tra.level,
+                'vxid': tra.vxid,
+                'vxid_parent': tra.vxid_parent,
+                'reason': tra.reason,
+                'type': None,
+                'transaction_type': tra.type,
+            }
+            while 1:
+                i = self.lva.VSL_Next(tra.c)
+                if i < 0:
+                    return (i)
+                if i == 0:
+                    break
+                if not self.lva.VSL_Match(self.vut[0].vsl, tra.c):
+                    continue
+
+                # decode length tag type(thread)...
+                ptr = tra.c[0].rec.ptr
+                cbd['length'] = ptr[0] & 0xffff
+                cbd['tag'] = self.VSL_TAG(ptr)
+                if cbd['type'] is None:
+                    if ptr[1] & 0x40000000: #1<<30
+                        cbd['type'] = 'c'
+                    elif ptr[1] & 0x80000000: #1<<31
+                        cbd['type'] = 'b'
+                    else:
+                        cbd['type'] = '-'
+                cbd['isbin'] = self.VSL_tagflags[cbd['tag']] & self.defi.SLT_F_BINARY
+                isbin = cbd['isbin'] == self.defi.SLT_F_BINARY or not self.dataDecode
+                cbd['data'] = self.VSL_DATA(ptr, isbin)
+
+                if self._cb is not None:
+                    self._cb(self, cbd, self._priv)
+            if self._vxidcb is not None:
+                self._vxidcb(self, self._priv)
+
+        if self._groupcb:
+            self._groupcb(self, self._priv)
+
+        return(0)
 
 class VarnishLog(VarnishVSM):
 
