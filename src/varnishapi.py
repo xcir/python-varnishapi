@@ -1394,8 +1394,8 @@ class VarnishVSM(VarnishAPI):
 
 class VarnishVUT(Thread, VarnishAPI):
     def __init__(self,
-                 progname='VarnishVUTproc',
                  opt=[],
+                 progname='VarnishVUTproc',
                  sopath='libvarnishapi.so.1'):
 
         Thread.__init__(self)
@@ -1419,25 +1419,25 @@ class VarnishVUT(Thread, VarnishAPI):
             if o[0][0] != '-':
                 continue
             arg = ""
-            if o[1][0] != '-':
+            if o[1] and o[1][0] != '-':
                 arg = o[1].encode("utf8", "replace")
             op = o[0].lstrip('-')
             self.lva.VUT_Arg(self.vut, ord(op[0]), arg)
 
     def Fini(self):
-        self.stop()
+        self.__stop()
         self.join()
 
-    def stop(self):
+    def __stop(self):
         self.vut[0].sigint = 1
 
 
 class VarnishLogVUT(VarnishVUT):
     def __init__(self,
-                 progname='VarnishVUTproc',
                  opt=[],
+                 progname='VarnishVUTproc',
                  sopath='libvarnishapi.so.1', dataDecode=True):
-        VarnishVUT.__init__(self, progname, opt, sopath)
+        VarnishVUT.__init__(self, opt, progname, sopath)
         self.vut[0].dispatch_f = VSLQ_dispatch_f(self._callBack)
         self.util = VSLUtil()
         self.dataDecode = dataDecode
