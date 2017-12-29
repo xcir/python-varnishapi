@@ -437,6 +437,250 @@ Description
                 VSL Query grouping name
 
 
+VarnishLogVUT class
+---------------------------------------
+
+VarnishLogVUT.__init__
+-----------------------
+
+Prototype
+        ::
+
+                VarnishLogVUT(opt = [], progname='VarnishVUTproc', sopath = 'libvarnishapi.so.1', dataDecode = 1)
+
+Parameter
+        ::
+
+                LIST   arg [OPTION]
+                STRING progname
+                STRING libvarnishapi path [OPTION]
+                INT Using decode at the callback [OPTION]
+
+Return value
+        ::
+
+                class object
+                
+
+Description
+        ::
+
+                initialize
+Example
+        ::
+
+                arg          = {}
+                arg["opt"]   = ['-g','session']
+                vsl = VarnishLogVUT(**arg)
+
+
+VarnishLogVUT.Fini
+-----------------------
+
+Prototype
+        ::
+
+                Fini()
+
+Parameter
+        ::
+
+                VOID
+
+Return value
+        ::
+
+                VOID
+                
+
+Description
+        ::
+
+                VarnishLogVUT is using thread.
+                Must call this function, if finish program.
+                
+Example
+        ::
+
+                vsl = VarnishLogVUT()
+                ...
+                vsl.Fini()
+
+VarnishLogVUT.Dispatch
+-----------------------
+
+Prototype
+        ::
+
+                Dispatch(cb=None, priv=None, maxread=1, vxidcb=None, groupcb=None)
+
+Parameter
+        ::
+
+                FUNC    cb      callback function per line
+                OBJECT  priv
+                INT     maxread Maximum number of reads, if have unread log in VSL.(0=infinity)
+                FUNC    vxidcb  callback function per vxid(call per line, if group option set to raw)
+                FUNC    groupcb callback function per group(raw, vxid, request, session)
+
+
+===================== ======== ======== =========== ===========
+callbacktype \\ group raw      vxid     request     session
+===================== ======== ======== =========== ===========
+cb                    per line per line per line    per line
+vxidcb                per line per vxid per vxid    per vxid
+groupcb               per line per vxid per request per session
+===================== ======== ======== =========== ===========
+
+
+Return value
+        ::
+
+                INT
+                
+
+Description
+        ::
+
+                Dispatch callback function
+
+Example
+        ::
+
+                import signal
+                import varnishapi
+                import time
+                def cbline(vap, cbd, priv):
+                    print cbd
+                def cbvxid(vap, priv):
+                    print "VXID"
+                def cbgroup(vap, priv):
+                    print "GROUP"
+
+                arg = {
+                    'opt': ['-g','request']
+                }
+                vsl = varnishapi.VarnishLogVUT(**arg)
+                arg = {
+                    'cb' : cbline,
+                    'vxidcb' : cbvxid,
+                    'groupcb' : cbgroup,
+                    'maxread' : 0,
+                }
+                try:
+                    vsl.Dispatch(**arg)
+                    signal.pause()
+                except KeyboardInterrupt:
+                    vsl.Fini()
+                #output
+                #
+                # {'level': 1L, 'data': u'req 32907 rxreq', 'length': 16L, 'transaction_type': 2, 'reason': 2, 'tag': 76L, 'vxid': 32908, 'vxid_parent': 0, 'type': 'c', 'isbin': 0L}
+                # {'level': 1L, 'data': u'Start: 1509598791.285514 0.000000 0.000000', 'length': 43L, 'transaction_type': 2, 'reason': 2, 'tag': 80L, 'vxid': 32908, 'vxid_parent': 0, 'type': 'c', 'isbin': 0L}
+                # {'level': 1L, 'data': u'Req: 1509598791.285514 0.000000 0.000000', 'length': 41L, 'transaction_type': 2, 'reason': 2, 'tag': 80L, 'vxid': 32908, 'vxid_parent': 0, 'type': 'c', 'isbin': 0L}
+                # ...
+                # {'level': 1L, 'data': u'', 'length': 1L, 'transaction_type': 2, 'reason': 2, 'tag': 77L, 'vxid': 32908, 'vxid_parent': 0, 'type': 'c', 'isbin': 0L}
+                # VXID
+                # {'level': 2L, 'data': u'bereq 32908 fetch', 'length': 18L, 'transaction_type': 3, 'reason': 6, 'tag': 76L, 'vxid': 32909, 'vxid_parent': 32908, 'type': 'b', 'isbin': 0L}
+                # ...
+                # {'level': 2L, 'data': u'165 0 165 160 298 458', 'length': 22L, 'transaction_type': 3, 'reason': 6, 'tag': 83L, 'vxid': 32909, 'vxid_parent': 32908, 'type': 'b', 'isbin': 0L}
+                # {'level': 2L, 'data': u'', 'length': 1L, 'transaction_type': 3, 'reason': 6, 'tag': 77L, 'vxid': 32909, 'vxid_parent': 32908, 'type': 'b', 'isbin': 0L}
+                # VXID
+                # GROUP
+                # {'level': 1L, 'data': u'req 65648 rxreq', 'length': 16L, 'transaction_type': 2, 'reason': 2, 'tag': 76L, 'vxid': 65649, 'vxid_parent': 0, 'type': 'c', 'isbin': 0L}
+                # {'level': 1L, 'data': u'Start: 1509598842.452101 0.000000 0.000000', 'length': 43L, 'transaction_type': 2, 'reason': 2, 'tag': 80L, 'vxid': 65649, 'vxid_parent': 0, 'type': 'c', 'isbin': 0L}
+
+
+
+VarnishLogVUT.VSL_tags / VSL_tags_rev
+-----------------------------------
+
+Prototype
+        ::
+
+                #This is list variable
+                VSL_tags[tag index]
+                #This is dictionary variable
+                VSL_tags_rev[tag name]
+
+Return value
+        ::
+
+                STRING tagname (VSL_tags)
+                INT tagindex (VSL_tags_rev)
+                
+
+Description
+        ::
+
+                Transcode tag index to tag text, or reverse
+
+Example
+        ::
+
+                import signal
+                import varnishapi
+                import time
+                def cbline(vap, cbd, priv):
+                    #output
+                    #...
+                    #VCL_call
+                    #VCL_return
+                    #...
+                    print vap.VSL_tags[cbd['tag']]
+
+                arg = {
+                    'opt': ['-c']
+                }
+                vsl = varnishapi.VarnishLogVUT(**arg)
+                arg = {
+                    'cb' : cbline,
+                }
+                try:
+                    vsl.Dispatch(**arg)
+                    signal.pause()
+                except KeyboardInterrupt:
+                    vsl.Fini()
+
+
+VarnishLogVUT.VSL_tagflags
+--------------------------------
+
+Prototype
+        ::
+
+                #This is list variable
+                VSL_tagflags[tag index]
+
+Return value
+        ::
+
+                INT tagflags
+
+Description
+        ::
+
+                tag flags
+
+VarnishLogVUT.VSLQ_grouping
+--------------------------------
+
+Prototype
+        ::
+
+                #This is list variable
+                VSLQ_grouping[tag index]
+
+Return value
+        ::
+
+                STRING VSLQ_grouping_name
+
+Description
+        ::
+
+                VSL Query grouping name
+
+
 HISTORY
 ===========
 Version 52.23: Enhance perfomance. add some feature in dispatch(). add transaction_type in callbackdata(cbd)
