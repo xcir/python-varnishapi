@@ -1398,9 +1398,12 @@ class VarnishVUT(Thread, VarnishAPI):
                  progname='VarnishVUTproc',
                  sopath='libvarnishapi.so.1'):
 
-        Thread.__init__(self)
         VarnishAPI.__init__(self, sopath)
-        
+        if self.lva.apiversion < 2.0:
+            print("Not support LIBVARNISHAPI version (2.0 > %.01f)" % self.lva.apiversion)
+            return(0)
+
+        Thread.__init__(self)
         self.vopt_spec = vopt_spec()
         self.vut = self.lva.VUT_Init(progname, 0, byref(cast('',c_char_p)), self.vopt_spec)
         if len(opt) > 0:

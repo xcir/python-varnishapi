@@ -443,6 +443,8 @@ Description
 VarnishLogVUT class
 ---------------------------------------
 
+Support Varnish5.2.0~(LIBVARNISHAPI2.0~)
+
 VarnishLogVUT.__init__
 -----------------------
 
