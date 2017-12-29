@@ -2,6 +2,7 @@
 
 # coding: utf-8
 import time,os,sys,syslog,traceback,varnishapi
+import signal
 
 class SampleVarnishLog:
 	def execute(self, vap):
@@ -24,7 +25,7 @@ class SampleVarnishLog:
 		}
 		ret = self.vap.Dispatch(**arg)
 		while 1:
-			time.sleep(1)
+			signal.pause()
 		
 		
 	def vapGroupCallBack(self,vap, priv):
