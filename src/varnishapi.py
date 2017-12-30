@@ -1400,7 +1400,7 @@ class VarnishVUT(Thread, VarnishAPI):
 
         VarnishAPI.__init__(self, sopath)
         if self.lva.apiversion < 2.0:
-            print("Not support LIBVARNISHAPI version (2.0 > %.01f)" % self.lva.apiversion)
+            self.error = "Not support LIBVARNISHAPI version (2.0 > %.01f)" % self.lva.apiversion
             return(0)
 
         Thread.__init__(self)
