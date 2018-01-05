@@ -1405,7 +1405,7 @@ class VarnishVUT(Thread, VarnishAPI):
 
         Thread.__init__(self)
         self.vopt_spec = vopt_spec()
-        self.vut = self.lva.VUT_Init(progname, 0, byref(cast('',c_char_p)), self.vopt_spec)
+        self.vut = self.lva.VUT_Init(cast(progname, c_char_p), 0, byref(cast('',c_char_p)), self.vopt_spec)
         if len(opt) > 0:
             self.__setArg(opt)
         self.lva.VUT_Setup(self.vut)
@@ -1444,7 +1444,6 @@ class VarnishLogVUT(VarnishVUT):
         self.vut[0].dispatch_f = VSLQ_dispatch_f(self._callBack)
         self.util = VSLUtil()
         self.dataDecode = dataDecode
-
     def Dispatch(self, cb=None, priv=None, maxread=1, vxidcb=None, groupcb=None):
         self._cb = cb
         self._vxidcb = vxidcb
