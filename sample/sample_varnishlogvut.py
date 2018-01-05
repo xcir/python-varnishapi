@@ -2,6 +2,7 @@
 
 # coding: utf-8
 import time,os,sys,syslog,traceback,varnishapi
+import signal
 
 class SampleVarnishLog:
 	def execute(self, vap):
@@ -22,10 +23,9 @@ class SampleVarnishLog:
 			'groupcb' : self.vapGroupCallBack,
 			'maxread' : 0,
 		}
+		ret = self.vap.Dispatch(**arg)
 		while 1:
-			ret = self.vap.Dispatch(**arg)
-			if 0 >= ret:
-				time.sleep(0.5)
+			signal.pause()
 		
 		
 	def vapGroupCallBack(self,vap, priv):
@@ -62,7 +62,7 @@ def main(smp):
 	try:
 		arg          = {}
 		arg["opt"]   = ['-g','session']
-		vap = varnishapi.VarnishLog(**arg)
+		vap = varnishapi.VarnishLogVUT(**arg)
 		if vap.error:
 			print(vap.error)
 			exit(1)
@@ -77,4 +77,4 @@ if __name__ == '__main__':
 	smp = SampleVarnishLog()
 	main(smp)
 
-	    
+
