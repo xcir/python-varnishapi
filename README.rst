@@ -20,6 +20,11 @@ For Varnish3.0.x
 See this link.
 https://github.com/xcir/python-varnishapi/tree/varnish30
 
+For Golang
+=================
+See this link.
+https://github.com/xcir/go-varnishapi
+
 
 Installation
 ============
