@@ -2,4 +2,5 @@
 *.pyc
 __pycache__/
 src/varnishapi.egg-info
+sample/varnishapi.py
 
