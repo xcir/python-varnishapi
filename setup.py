@@ -12,7 +12,7 @@ with open(os.path.join(current_dir, 'README.rst')) as readme_file:
 
 sys.path.insert(0, current_dir + os.sep + 'src')
 
-release = "52.23"
+release = "60.24"
 
 setup(
     name='varnishapi',
@@ -37,7 +37,7 @@ setup(
         'Natural Language :: English',
         'Operating System :: POSIX',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 2.7',
         'Topic :: Internet :: WWW/HTTP',
     ]
