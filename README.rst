@@ -693,7 +693,7 @@ Description
 
 HISTORY
 ===========
-Version 60.24: Support VUT.(p-r #75 thanks ehocdet). Fix callback logic(vxid/groupcb)
+Version 60.24: Support VUT.(p-r #75 thanks ehocdet). Fix callback logic(vxid/groupcb). VarnishLog is deprecated, replace to VarnishLogVUT.
 
 Version 52.23: Enhance perfomance. add some feature in dispatch(). add transaction_type in callbackdata(cbd)
 
