@@ -254,7 +254,8 @@ class VarnishAPIDefine40:
         self.VSL_COPT_TAIL = (1 << 0)
         self.VSL_COPT_BATCH = (1 << 1)
         self.VSL_COPT_TAILSTOP = (1 << 2)
-        self.SLT_F_BINARY = (1 << 1)
+        self.SLT_F_UNSAFE = (1 << 1)
+        self.SLT_F_BINARY = (1 << 2)
         
         self.VSM_MGT_RUNNING = (1 << 1)
         self.VSM_MGT_CHANGED = (1 << 2)
@@ -1454,6 +1455,7 @@ class VarnishLogVUT(VarnishVUT):
     def _callBack(self, vsl, pt, fo):
         idx = -1
         cbexec = 0
+        binflag = self.defi.SLT_F_UNSAFE or self.defi.SLT_F_BINARY
         while 1:
             idx += 1
             t = pt[idx]
@@ -1491,8 +1493,8 @@ class VarnishLogVUT(VarnishVUT):
                         cbd['type'] = 'b'
                     else:
                         cbd['type'] = '-'
-                cbd['isbin'] = self.VSL_tagflags[cbd['tag']] & self.defi.SLT_F_BINARY
-                isbin = cbd['isbin'] == self.defi.SLT_F_BINARY or not self.dataDecode
+                cbd['isbin'] = self.VSL_tagflags[cbd['tag']] & binflag
+                isbin = cbd['isbin'] & binflag or not self.dataDecode
                 cbd['data'] = self.VSL_DATA(ptr, isbin)
 
                 if self._cb is not None:
@@ -1837,6 +1839,7 @@ class VarnishLog(VarnishVSM):
     def _callBack(self, vsl, pt, fo):
         idx = -1
         cbexec = 0
+        binflag = self.defi.SLT_F_UNSAFE or self.defi.SLT_F_BINARY
         while 1:
             idx += 1
             t = pt[idx]
@@ -1874,8 +1877,8 @@ class VarnishLog(VarnishVSM):
                         cbd['type'] = 'b'
                     else:
                         cbd['type'] = '-'
-                cbd['isbin'] = self.VSL_tagflags[cbd['tag']] & self.defi.SLT_F_BINARY
-                isbin = cbd['isbin'] == self.defi.SLT_F_BINARY or not self.dataDecode
+                cbd['isbin'] = self.VSL_tagflags[cbd['tag']] & binflag
+                isbin = cbd['isbin'] & binflag or not self.dataDecode
                 cbd['data'] = self.VSL_DATA(ptr, isbin)
 
                 if self._cb is not None:
