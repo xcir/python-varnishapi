@@ -1454,7 +1454,8 @@ class VarnishLogVUT(VarnishVUT):
 
     def _callBack(self, vsl, pt, fo):
         idx = -1
-        cbexec = 0
+        cbexec_v = 0
+        cbexec_g = 0
         binflag = self.defi.SLT_F_UNSAFE or self.defi.SLT_F_BINARY
         while 1:
             idx += 1
@@ -1471,7 +1472,7 @@ class VarnishLogVUT(VarnishVUT):
                 'type': None,
                 'transaction_type': tra.type,
             }
-            cbexec = 0
+            cbexec_v = 0
             while 1:
                 i = self.lva.VSL_Next(tra.c)
                 if i < 0:
@@ -1480,7 +1481,8 @@ class VarnishLogVUT(VarnishVUT):
                     break
                 if not self.lva.VSL_Match(self.vut[0].vsl, tra.c):
                     continue
-                cbexec = 1
+                cbexec_v = 1
+                cbexec_g = 1
 
                 # decode length tag type(thread)...
                 ptr = tra.c[0].rec.ptr
@@ -1499,10 +1501,10 @@ class VarnishLogVUT(VarnishVUT):
 
                 if self._cb is not None:
                     self._cb(self, cbd, self._priv)
-            if self._vxidcb is not None and cbexec:
+            if self._vxidcb is not None and cbexec_v:
                 self._vxidcb(self, self._priv)
 
-        if self._groupcb is not None and cbexec:
+        if self._groupcb is not None and cbexec_g:
             self._groupcb(self, self._priv)
 
         return(0)
@@ -1838,7 +1840,8 @@ class VarnishLog(VarnishVSM):
 
     def _callBack(self, vsl, pt, fo):
         idx = -1
-        cbexec = 0
+        cbexec_v = 0
+        cbexec_g = 0
         binflag = self.defi.SLT_F_UNSAFE or self.defi.SLT_F_BINARY
         while 1:
             idx += 1
@@ -1855,7 +1858,7 @@ class VarnishLog(VarnishVSM):
                 'type': None,
                 'transaction_type': tra.type,
             }
-            cbexec = 0
+            cbexec_v = 0
             while 1:
                 i = self.lva.VSL_Next(tra.c)
                 if i < 0:
@@ -1864,7 +1867,8 @@ class VarnishLog(VarnishVSM):
                     break
                 if not self.lva.VSL_Match(self.vsl, tra.c):
                     continue
-                cbexec = 1
+                cbexec_v = 1
+                cbexec_g = 1
 
                 # decode length tag type(thread)...
                 ptr = tra.c[0].rec.ptr
@@ -1883,10 +1887,10 @@ class VarnishLog(VarnishVSM):
 
                 if self._cb is not None:
                     self._cb(self, cbd, self._priv)
-            if self._vxidcb is not None and cbexec:
+            if self._vxidcb is not None and cbexec_v:
                 self._vxidcb(self, self._priv)
 
-        if self._groupcb is not None and cbexec:
+        if self._groupcb is not None and cbexec_g:
             self._groupcb(self, self._priv)
 
         return(0)
