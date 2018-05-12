@@ -1410,6 +1410,10 @@ class VarnishVUT(Thread, VarnishAPI):
         if len(opt) > 0:
             self.__setArg(opt)
         self.lva.VUT_Setup(self.vut)
+        self.vut[0].dispatch_f = VSLQ_dispatch_f(self._callBack)
+
+    def _callBack(self, vsl, pt, fo):
+        raise NotImplementedError
 
     def run(self):
         self.lva.VUT_Main(self.vut)
@@ -1442,9 +1446,9 @@ class VarnishLogVUT(VarnishVUT):
                  progname='VarnishVUTproc',
                  sopath='libvarnishapi.so.1', dataDecode=True):
         VarnishVUT.__init__(self, opt, progname, sopath)
-        self.vut[0].dispatch_f = VSLQ_dispatch_f(self._callBack)
         self.util = VSLUtil()
         self.dataDecode = dataDecode
+
     def Dispatch(self, cb=None, priv=None, maxread=1, vxidcb=None, groupcb=None):
         self._cb = cb
         self._vxidcb = vxidcb
