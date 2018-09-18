@@ -1306,7 +1306,7 @@ class VSLUtil:
 
 class VarnishAPI:
 
-    def __init__(self, sopath='libvarnishapi.so.1'):
+    def __init__(self, sopath='libvarnishapi.so'):
         self.lib = cdll[sopath]
         self.lva = LIBVARNISHAPI(self.lib)
         self.defi = VarnishAPIDefine40()
@@ -1351,7 +1351,7 @@ class VarnishAPI:
 
 class VarnishVSM(VarnishAPI):
 
-    def __init__(self, sopath='libvarnishapi.so.1'):
+    def __init__(self, sopath='libvarnishapi.so'):
         VarnishAPI.__init__(self, sopath)
         self.vsm = self.lva.VSM_New()
         self.d_opt = 0
@@ -1397,7 +1397,7 @@ class VarnishVUT(Thread, VarnishAPI):
     def __init__(self,
                  opt=[],
                  progname='VarnishVUTproc',
-                 sopath='libvarnishapi.so.1'):
+                 sopath='libvarnishapi.so'):
 
         VarnishAPI.__init__(self, sopath)
         if self.lva.apiversion < 2.0:
@@ -1444,7 +1444,7 @@ class VarnishLogVUT(VarnishVUT):
     def __init__(self,
                  opt=[],
                  progname='VarnishVUTproc',
-                 sopath='libvarnishapi.so.1', dataDecode=True):
+                 sopath='libvarnishapi.so', dataDecode=True):
         VarnishVUT.__init__(self, opt, progname, sopath)
         self.util = VSLUtil()
         self.dataDecode = dataDecode
@@ -1516,7 +1516,7 @@ class VarnishLogVUT(VarnishVUT):
 
 class VarnishStat(VarnishVSM):
 
-    def __init__(self, opt='', sopath='libvarnishapi.so.1'):
+    def __init__(self, opt='', sopath='libvarnishapi.so'):
         VarnishVSM.__init__(self, sopath)
         self.name = ''
         if len(opt) > 0:
@@ -1604,7 +1604,7 @@ class VarnishStat(VarnishVSM):
 
 class VarnishLog(VarnishVSM):
 
-    def __init__(self, opt='', sopath='libvarnishapi.so.1', dataDecode=True):
+    def __init__(self, opt='', sopath='libvarnishapi.so', dataDecode=True):
         VarnishVSM.__init__(self, sopath)
 
         self.vut = VSLUtil()
