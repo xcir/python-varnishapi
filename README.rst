@@ -10,8 +10,8 @@ Connect to libvarnish api by ctypes
 :Author: Shohei Tanaka(@xcir)
 :Date: 2018-03-19
 :Version: 60.24
-:Support Varnish Version: 4.0.x, 4.1.x 5.0.x 5.1.x 5.2.x 6.0.x
-:Check Varnish Version: 5.2.1 6.0.x
+:Support Varnish Version: 4.0.x, 4.1.x 5.0.x 5.1.x 5.2.x 6.0.x 6.1.x
+:Check Varnish Version: 6.0.x 6.1.x
 :Check Python Version: 2.7.x, 3.5.x
 :Manual section: 3
 
