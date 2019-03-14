@@ -819,7 +819,7 @@ class LIBVARNISHAPI20:
         self.lc = lc
     
     def run(self, lib):
-        if hasattr(lib, "VSIG_int"):
+        if hasattr(lib, "VSIG_Got_int"):
             self.lc.apiversion = 2.2
         #elif hasattr(lib, "VUT_Usage"):
         #    self.lc.apiversion = 2.1
@@ -1499,6 +1499,8 @@ class VarnishVUT(Thread, VarnishAPI):
     def __stop(self):
         if self.lva.apiversion < 2.2:
             self.vut[0].sigint = 1
+        else:
+            self.lva.VSIG_Arm_int()
 
 
 class VarnishLogVUT(VarnishVUT):
