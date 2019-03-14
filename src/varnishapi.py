@@ -33,8 +33,6 @@ import getopt
 import time
 from threading import Thread
 
-
-
 class VSC_level_desc(Structure):
     _fields_ = [
         ("verbosity", c_uint),  # unsigned verbosity;
@@ -377,6 +375,31 @@ class VUT (Structure):
         ("sighup" , c_int),                 #int		sighup;
         ("sigint" , c_int),                 #int		sigint;
         ("sigusr1" , c_int),                #int		sigusr1;
+        ("idle_f" , VUT_cb_f),              #VUT_cb_f	*idle_f;
+        ("sighup_f" , VUT_cb_f),            #VUT_cb_f	*sighup_f;
+        ("error_f" , c_void_p),             #VUT_error_f	*error_f;
+        ("dispatch_f" , VSLQ_dispatch_f),   #VSLQ_dispatch_f	*dispatch_f;
+        ("dispatch_priv" , c_void_p)        #void		*dispatch_priv;
+    ]
+
+class VUT_22 (Structure):
+    _fields_ = [
+        ("magic" , c_uint),   #unsigned	magic;
+        ("progname" , c_char_p),            #const char	*progname;
+        ("d_opt" , c_int),                  #int		d_opt;
+        ("D_opt" , c_int),                  #int		D_opt;
+        ("g_arg" , c_int),                  #int		g_arg;
+        ("k_arg" , c_int),                  #int		k_arg;
+        ("n_arg" , c_char_p),               #char		*n_arg;
+        ("P_arg" , c_char_p),               #char		*P_arg;
+        ("q_arg" , c_char_p),               #char		*q_arg;
+        ("r_arg" , c_char_p),               #char		*r_arg;
+        ("t_arg" , c_char_p),               #char		*t_arg;
+        ("vsl" , c_void_p),                 #struct VSL_data	*vsl;
+        ("vsm" , c_void_p),                 #struct vsm	*vsm;
+        ("vslq" , c_void_p),                #struct VSLQ	*vslq;
+        ("last_sighup" , c_int),            #sig_atomic_t	last_sighup;
+        ("last_sigusr1" , c_int),           #sig_atomic_t	last_sigusr1;
         ("idle_f" , VUT_cb_f),              #VUT_cb_f	*idle_f;
         ("sighup_f" , VUT_cb_f),            #VUT_cb_f	*sighup_f;
         ("error_f" , c_void_p),             #VUT_error_f	*error_f;
@@ -795,7 +818,11 @@ class LIBVARNISHAPI20:
         self.lc = lc
     
     def run(self, lib):
-        if hasattr(lib, "VSM_Map"):
+        if hasattr(lib, "VSIG_int"):
+            self.lc.apiversion = 2.2
+        #elif hasattr(lib, "VUT_Usage"):
+        #    self.lc.apiversion = 2.1
+        elif hasattr(lib, "VSM_Map"):
             self.lc.apiversion = 2.0
 
         #	# vas.c
@@ -1144,36 +1171,110 @@ class LIBVARNISHAPI20:
         #
         #	# vut.c
         #		VUT_Arg;
-        self.lc.VUT_Arg = lib.VUT_Arg
-        self.lc.VUT_Arg.argtypes = [POINTER(VUT), c_int, c_char_p]
+        if self.lc.apiversion < 2.2:
+            self.lc.VUT_Arg = lib.VUT_Arg
+            self.lc.VUT_Arg.argtypes = [POINTER(VUT), c_int, c_char_p]
 
-        #		VUT_Error;
-        self.lc.VUT_Error = lib.VUT_Error
+            #		VUT_Error;
+            self.lc.VUT_Error = lib.VUT_Error
 
-        #		VUT_Fini;
-        self.lc.VUT_Fini = lib.VUT_Fini
-        self.lc.VUT_Fini.argtypes = [POINTER(POINTER(VUT))]
+            #		VUT_Fini;
+            self.lc.VUT_Fini = lib.VUT_Fini
+            self.lc.VUT_Fini.argtypes = [POINTER(POINTER(VUT))]
 
-        #		VUT_Init;
-        self.lc.VUT_Init = lib.VUT_Init
-        self.lc.VUT_Init.restype = POINTER(VUT)
-        self.lc.VUT_Init.argtypes = [c_char_p, c_int, POINTER(c_char_p), POINTER(vopt_spec)]
+            #		VUT_Init;
+            self.lc.VUT_Init = lib.VUT_Init
+            self.lc.VUT_Init.restype = POINTER(VUT)
+            self.lc.VUT_Init.argtypes = [c_char_p, c_int, POINTER(c_char_p), POINTER(vopt_spec)]
 
-        #		VUT_Main;
-        self.lc.VUT_Main = lib.VUT_Main
-        self.lc.VUT_Main.argtypes = [POINTER(VUT)]
+            #		VUT_Main;
+            self.lc.VUT_Main = lib.VUT_Main
+            self.lc.VUT_Main.argtypes = [POINTER(VUT)]
 
-        #		VUT_Setup;
-        self.lc.VUT_Setup = lib.VUT_Setup
-        self.lc.VUT_Setup.argtypes = [POINTER(VUT)]
+            #		VUT_Setup;
+            self.lc.VUT_Setup = lib.VUT_Setup
+            self.lc.VUT_Setup.argtypes = [POINTER(VUT)]
 
-        #		VUT_Signal;
-        self.lc.VUT_Signal = lib.VUT_Signal
-        self.lc.VUT_Signal.argtypes = [VUT_sighandler_f]
+            #		VUT_Signal;
+            self.lc.VUT_Signal = lib.VUT_Signal
+            self.lc.VUT_Signal.argtypes = [VUT_sighandler_f]
 
-        #		VUT_Signaled;
-        self.lc.VUT_Signaled = lib.VUT_Signaled
-        self.lc.VUT_Signaled.argtypes = [POINTER(VUT), c_int]
+            #		VUT_Signaled;
+            self.lc.VUT_Signaled = lib.VUT_Signaled
+            self.lc.VUT_Signaled.argtypes = [POINTER(VUT), c_int]
+        else:
+            self.lc.VUT_Arg = lib.VUT_Arg
+            self.lc.VUT_Arg.argtypes = [POINTER(VUT_22), c_int, c_char_p]
+
+            #		VUT_Error;
+            self.lc.VUT_Error = lib.VUT_Error
+
+            #		VUT_Fini;
+            self.lc.VUT_Fini = lib.VUT_Fini
+            self.lc.VUT_Fini.argtypes = [POINTER(POINTER(VUT_22))]
+
+            #		VUT_Init;
+            self.lc.VUT_Init = lib.VUT_Init
+            self.lc.VUT_Init.restype = POINTER(VUT_22)
+            self.lc.VUT_Init.argtypes = [c_char_p, c_int, POINTER(c_char_p), POINTER(vopt_spec)]
+
+            #		VUT_Main;
+            self.lc.VUT_Main = lib.VUT_Main
+            self.lc.VUT_Main.argtypes = [POINTER(VUT_22)]
+
+            #		VUT_Setup;
+            self.lc.VUT_Setup = lib.VUT_Setup
+            self.lc.VUT_Setup.argtypes = [POINTER(VUT_22)]
+
+            #		VUT_Signal;
+            self.lc.VUT_Signal = lib.VUT_Signal
+            self.lc.VUT_Signal.argtypes = [VUT_sighandler_f]
+
+            #		VUT_Signaled;
+            self.lc.VUT_Signaled = lib.VUT_Signaled
+            self.lc.VUT_Signaled.argtypes = [POINTER(VUT_22), c_int]
+        
+
+        #LIBVARNISHAPI_2.1
+        if self.lc.apiversion < 2.1:
+            return
+
+        #		VUT_Usage;
+        #
+        if self.lc.apiversion < 2.2:
+            self.lc.VUT_Usage = lib.VUT_Usage
+            self.lc.VUT_Usage.argtypes = [POINTER(VUT), POINTER(vopt_spec), c_int]
+        else:
+            self.lc.VUT_Usage = lib.VUT_Usage
+            self.lc.VUT_Usage.argtypes = [POINTER(VUT_22), POINTER(vopt_spec), c_int]
+
+        #LIBVARNISHAPI_2.2
+        if self.lc.apiversion < 2.2:
+            return
+        #		VSIG_int;
+        #
+        #		VSIG_Got_int;
+        #
+        #		VSIG_Arm_int;
+        #
+        #		VSIG_hup;
+        #
+        #		VSIG_Got_hup;
+        #
+        #		VSIG_Arm_hup;
+        #
+        #		VSIG_term;
+        #
+        #		VSIG_Got_term;
+        #
+        #		VSIG_Arm_term;
+        #
+        #		VSIG_usr1;
+        #
+        #		VSIG_Got_usr1;
+        #
+        #		VSIG_Arm_usr1;
+        #
 
 class LIBVARNISHAPI:
     def __init__(self, lib):
