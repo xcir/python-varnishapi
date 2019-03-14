@@ -31,6 +31,7 @@
 from ctypes import *
 import getopt
 import time
+import signal
 from threading import Thread
 
 class VSC_level_desc(Structure):
@@ -1449,6 +1450,11 @@ class VarnishVUT(Thread, VarnishAPI):
 
     def _callBack(self, vsl, pt, fo):
         raise NotImplementedError
+
+    def waitSignal(self):
+        if self.lva.apiversion < 2.2:
+            while 1:
+                signal.pause()
 
     def run(self):
         self.lva.VUT_Main(self.vut)
