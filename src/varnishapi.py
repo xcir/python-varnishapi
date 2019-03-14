@@ -1256,26 +1256,45 @@ class LIBVARNISHAPI20:
         #
         #		VSIG_Got_int;
         #
+            self.lc.VSIG_Got_int = lib.VSIG_Got_int
+            self.lc.VSIG_Got_int.argtypes = [c_int]
+
         #		VSIG_Arm_int;
         #
+            self.lc.VSIG_Arm_int = lib.VSIG_Arm_int
+
         #		VSIG_hup;
         #
         #		VSIG_Got_hup;
         #
+            self.lc.VSIG_Got_hup = lib.VSIG_Got_hup
+            self.lc.VSIG_Got_hup.argtypes = [c_int]
+
         #		VSIG_Arm_hup;
         #
+            self.lc.VSIG_Arm_hup = lib.VSIG_Arm_hup
+
         #		VSIG_term;
         #
         #		VSIG_Got_term;
         #
+            self.lc.VSIG_Got_term = lib.VSIG_Got_term
+            self.lc.VSIG_Got_term.argtypes = [c_int]
+
         #		VSIG_Arm_term;
         #
+            self.lc.VSIG_Arm_term = lib.VSIG_Arm_term
+
         #		VSIG_usr1;
         #
         #		VSIG_Got_usr1;
         #
+            self.lc.VSIG_Got_usr1 = lib.VSIG_Got_usr1
+            self.lc.VSIG_Got_usr1.argtypes = [c_int]
+
         #		VSIG_Arm_usr1;
         #
+            self.lc.VSIG_Arm_usr1 = lib.VSIG_Arm_usr1
 
 class LIBVARNISHAPI:
     def __init__(self, lib):
@@ -1478,7 +1497,8 @@ class VarnishVUT(Thread, VarnishAPI):
         self.join()
 
     def __stop(self):
-        self.vut[0].sigint = 1
+        if self.lva.apiversion < 2.2:
+            self.vut[0].sigint = 1
 
 
 class VarnishLogVUT(VarnishVUT):
