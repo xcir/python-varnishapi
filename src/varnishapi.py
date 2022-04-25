@@ -1415,7 +1415,7 @@ class VarnishVSM(VarnishAPI):
         if self.lva.apiversion >= 2.0:
             if op == "n":
                 # Set Varnish instance name.
-                i = self.lva.VSM_Arg(self.vsm, 'n', arg)
+                i = self.lva.VSM_Arg(self.vsm, b'n', arg)
                 if i <= 0:
                     self.error = "%s" % self.lva.VSM_Error(self.vsm).rstrip()
                     return(i)
